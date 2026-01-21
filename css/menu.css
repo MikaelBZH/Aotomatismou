@@ -4,12 +4,19 @@
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    display: flex;
     min-height: 100vh;
     background-color: #121212;
     /* Deep dark background */
     color: #e5e7eb;
     /* Light text */
+    display: flex;
+    flex-direction: column;
+}
+
+.app {
+    display: flex;
+    flex: 1;
+    /* prend tout l'espace */
 }
 
 /* ========================= */
@@ -123,6 +130,19 @@ nav a:hover {
 .main.menu-closed {
     margin-left: 0;
 }
+
+.site-footer {
+    text-align: center;
+    padding: 12px 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.site-footer a {
+    color: inherit;
+    text-decoration: underline;
+}
+
 
 /* ========================= */
 /* 📱 Mobile Toggle Button & Overlay */
