@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Perzh Thales</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+    <div id="content" class="main">
+        <div class="container">
+            <div class="number" id="jedad"></div>
+            <canvas id="geoCanvas" width="500" height="400" style="border:1px solid #ccc;"></canvas>
+            <div>
+                <button class="button" onclick="diskouezRespontThales()" id="respontBtn">Respont</button>
+                <button class="button" onclick="newFigure()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/graph_functions.js"></script>
+
+    <script>
+        /* =========================
+           CONFIG & MATH TOOLS
+        ========================= */
+        const RATIOS = [1.5, 2, 2.5, 3, 0.5];
+        const L_VALS = [2, 3, 4, 5, 6, 8, 10];
+
+        let currentFigure = null;
+        let autoTransform = null;
+
+        function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function generateNumericData() {
+            const k = randomChoice(RATIOS);
+            let AB = randomChoice(L_VALS);
+            let AC = randomChoice(L_VALS.filter(v => v !== AB));
+
+            const minBC = Math.abs(AB - AC) + 1;
+            const maxBC = AB + AC - 1;
+            const possibleBC = L_VALS.filter(v => v >= minBC && v <= maxBC);
+            const BC = possibleBC.length > 0 ? randomChoice(possibleBC) : Math.floor((minBC + maxBC) / 2);
+
+            // Liste des segments possibles à cacher
+            const segments = ["AB", "AC", "BC", "AD", "AE", "DE"];
+            const hidden = randomChoice(segments);
+
+            return {
+                k, AB, AC, BC,
+                AD: AB * k, AE: AC * k, DE: BC * k,
+                hidden
+            };
+        }
+
+        function getThirdPoint(sideAB, sideAC, sideBC, invertY = false) {
+            const x = (sideAB * sideAB + sideAC * sideAC - sideBC * sideBC) / (2 * sideAB);
+            const y = Math.sqrt(Math.max(0, sideAC * sideAC - x * x)) * (invertY ? -1 : 1);
+            return { x, y };
+        }
+
+        /* =========================
+           GEOMETRY GENERATION
+        ========================= */
+        function generateTriangleThales(lengths) {
+            const A = { x: 0, y: 0 };
+            const B = { x: lengths.AB, y: 0 };
+            const C = getThirdPoint(lengths.AB, lengths.AC, lengths.BC);
+            const D = { x: B.x * lengths.k, y: B.y * lengths.k };
+            const E = { x: C.x * lengths.k, y: C.y * lengths.k };
+            return { A, B, C, D, E, type: "triangle" };
+        }
+
+        function generateButterflyThales(lengths) {
+            const A = { x: 0, y: 0 };
+            const B_orig = { x: lengths.AB, y: 0 };
+            const C_orig = getThirdPoint(lengths.AB, lengths.AC, lengths.BC);
+            const B = { x: -B_orig.x, y: -B_orig.y };
+            const C = { x: -C_orig.x, y: -C_orig.y };
+            const k = lengths.k;
+            const D = { x: B_orig.x * k, y: B_orig.y * k };
+            const E = { x: C_orig.x * k, y: C_orig.y * k };
+            return { A, B, C, D, E, type: "butterfly" };
+        }
+
+        function rotatePoint(p, angle) {
+            return {
+                x: p.x * Math.cos(angle) - p.y * Math.sin(angle),
+                y: p.x * Math.sin(angle) + p.y * Math.cos(angle)
+            };
+        }
+
+        /* =========================
+           CANVAS & HiDPI
+        ========================= */
+        const canvas = document.getElementById("geoCanvas");
+        const { ctx, width: w, height: h } = setupUniversalHiDPI(canvas);
+
+
+        function computeAutoTransform(fig) {
+            const points = [fig.A, fig.B, fig.C, fig.D, fig.E];
+            const minX = Math.min(...points.map(p => p.x));
+            const maxX = Math.max(...points.map(p => p.x));
+            const minY = Math.min(...points.map(p => p.y));
+            const maxY = Math.max(...points.map(p => p.y));
+
+            const rect = canvas.getBoundingClientRect();
+            const margin = 60;
+            const scaleX = (rect.width - margin * 2) / (maxX - minX);
+            const scaleY = (rect.height - margin * 2) / (maxY - minY);
+            const scale = Math.min(scaleX, scaleY);
+
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+
+            return { scale, centerX, centerY, rectWidth: rect.width, rectHeight: rect.height };
+        }
+
+        function toCanvas(p) {
+            const { scale, centerX, centerY, rectWidth, rectHeight } = autoTransform;
+            return {
+                x: rectWidth / 2 + (p.x - centerX) * scale,
+                y: rectHeight / 2 - (p.y - centerY) * scale
+            };
+        }
+
+        function drawFigure(fig) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            autoTransform = computeAutoTransform(fig);
+
+            const cA = toCanvas(fig.A), cB = toCanvas(fig.B), cC = toCanvas(fig.C), cD = toCanvas(fig.D), cE = toCanvas(fig.E);
+
+            ctx.lineWidth = 2.5;
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+
+            if (fig.type === "triangle") {
+                const farAB = Math.abs(fig.B.x) > Math.abs(fig.D.x) ? cB : cD;
+                const farAC = Math.hypot(fig.C.x, fig.C.y) > Math.hypot(fig.E.x, fig.E.y) ? cC : cE;
+                drawSeg(cA, farAB, "#9ca3af");
+                drawSeg(cA, farAC, "#9ca3af");
+                drawSeg(cB, cC, "#ef4444");
+                drawSeg(cD, cE, "#10b981");
+            } else {
+                drawSeg(cB, cD, "#9ca3af");
+                drawSeg(cC, cE, "#9ca3af");
+                drawSeg(cB, cC, "#ef4444");
+                drawSeg(cD, cE, "#10b981");
+            }
+
+            const points = [
+                { p: cA, n: "A" }, { p: cB, n: "B" }, { p: cC, n: "C" },
+                { p: cD, n: "D" }, { p: cE, n: "E" }
+            ];
+
+            points.forEach(item => {
+                const label = fig.labels[item.n];
+                ctx.fillStyle = "white";
+                ctx.font = "bold 19px Arial";
+                const offsetX = item.p.x > canvas.getBoundingClientRect().width / 2 ? 10 : -25;
+                const offsetY = item.p.y > canvas.getBoundingClientRect().height / 2 ? 20 : -10;
+                ctx.fillText(label, item.p.x + offsetX, item.p.y + offsetY);
+                ctx.beginPath();
+                ctx.arc(item.p.x, item.p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawSeg(p1, p2, color) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color;
+            ctx.stroke();
+        }
+
+        /* =========================
+           CORE LOGIC
+        ========================= */
+        function formatNum(n) {
+            return Number.isInteger(n) ? n.toString() : n.toFixed(1).replace('.', ',');
+        }
+
+        function formatNum(n) {
+            return Number.isInteger(n) ? n.toString() : n.toFixed(1).replace('.', ',');
+        }
+
+        function newFigure() {
+            const area = document.getElementById("respontArea");
+            area.style.display = "none";
+
+            const lengths = generateNumericData();
+            const isButterfly = Math.random() > 0.5;
+            let fig = isButterfly ? generateButterflyThales(lengths) : generateTriangleThales(lengths);
+
+            const angle = Math.random() * Math.PI * 2;
+            ["A", "B", "C", "D", "E"].forEach(k => fig[k] = rotatePoint(fig[k], angle));
+
+            fig.lengths = lengths;
+            const labels = [...lizherenn].sort(() => Math.random() - 0.5);
+            fig.labels = { A: labels[0], B: labels[1], C: labels[2], D: labels[3], E: labels[4] };
+
+            currentFigure = fig;
+
+            const L = fig.labels;
+            const len = fig.lengths;
+
+            const segments = {
+                "AB": `${L.A}${L.B}`, "AD": `${L.A}${L.D}`,
+                "AC": `${L.A}${L.C}`, "AE": `${L.A}${L.E}`,
+                "BC": `${L.B}${L.C}`, "DE": `${L.D}${L.E}`
+            };
+
+            const hiddenKey = len.hidden;
+            let chosenKeys = [hiddenKey];
+
+            const partners = {
+                "AB": "AD", "AD": "AB",
+                "AC": "AE", "AE": "AC",
+                "BC": "DE", "DE": "BC"
+            };
+            chosenKeys.push(partners[hiddenKey]);
+
+            const otherPairs = [["AB", "AD"], ["AC", "AE"], ["BC", "DE"]].filter(pair => !pair.includes(hiddenKey));
+            const randomPair = randomChoice(otherPairs);
+            chosenKeys.push(...randomPair);
+
+            fig.displayKeys = chosenKeys;
+
+            let dataHtml = `\\[ \\begin{aligned}
+            & \\text{War ar figurenn-mañ ez eo parallelek } (${L.B}${L.C}) \\text{ ha } (${L.D}${L.E}). \\\\`;
+
+            const toDisplay = chosenKeys.filter(k => k !== hiddenKey);
+            toDisplay.forEach((k, i) => {
+                dataHtml += `&${segments[k]} = ${formatNum(len[k])} \\text{ cm}${i === toDisplay.length - 1 ? '.' : ', '} \\\\`;
+            });
+
+            dataHtml += `& \\text{Jediñ an hirder } ${segments[hiddenKey]}. \\end{aligned} \\]`;
+
+            document.getElementById("jedad").innerHTML = dataHtml;
+            drawFigure(fig);
+            if (window.MathJax) MathJax.typeset();
+        }
+
+        function diskouezRespontThales() {
+            const fig = currentFigure;
+            if (!fig) return;
+            const L = fig.labels;
+            const len = fig.lengths;
+            const area = document.getElementById("respontArea");
+
+            const segments = {
+                "AB": `${L.A}${L.B}`, "AD": `${L.A}${L.D}`,
+                "AC": `${L.A}${L.C}`, "AE": `${L.A}${L.E}`,
+                "BC": `${L.B}${L.C}`, "DE": `${L.D}${L.E}`
+            };
+
+            // On définit les 3 rapports de Thalès dans l'ordre du texte théorique
+            // Rapport 1: AD/AB, Rapport 2: AE/AC, Rapport 3: DE/BC
+            const fractions = [
+                { num: "AD", den: "AB" },
+                { num: "AE", den: "AC" },
+                { num: "DE", den: "BC" }
+            ];
+
+            const hidden = len.hidden;
+
+            // Trouver quel rapport contient l'inconnue
+            const fIndexHidden = fractions.findIndex(f => f.num === hidden || f.den === hidden);
+            // Trouver quel rapport parmi les 2 autres est entièrement connu (dans displayKeys)
+            const fIndexKnown = fractions.findIndex((f, idx) =>
+                idx !== fIndexHidden && fig.displayKeys.includes(f.num) && fig.displayKeys.includes(f.den)
+            );
+
+            const fHidden = fractions[fIndexHidden];
+            const fKnown = fractions[fIndexKnown];
+
+            // On garde strictement l'ordre théorique pour l'affichage des deux rapports utilisés
+            let rapportA, rapportB;
+            if (fIndexHidden < fIndexKnown) {
+                rapportA = fHidden; rapportB = fKnown;
+            } else {
+                rapportA = fKnown; rapportB = fHidden;
+            }
+
+            // Construction de l'affichage avec valeurs numériques
+            const displayVal = (key) => key === hidden ? segments[key] : formatNum(len[key]);
+
+            const valLeft = `\\frac{${displayVal(rapportA.num)}}{${displayVal(rapportA.den)}}`;
+            const valRight = `\\frac{${displayVal(rapportB.num)}}{${displayVal(rapportB.den)}}`;
+
+            // Calcul du produit en croix selon la position de l'inconnue
+            // Cas 1 : x / A = B / C  => x = (A * B) / C
+            // Cas 2 : A / x = B / C  => x = (A * C) / B
+            let calcNum, calcDen;
+            if (hidden === fHidden.num) {
+                // x est au numérateur
+                const A = len[fHidden.den];
+                const B = len[fKnown.num];
+                const C = len[fKnown.den];
+                calcNum = `${formatNum(A)} \\times ${formatNum(B)}`;
+                calcDen = formatNum(C);
+            } else {
+                // x est au dénominateur
+                const A = len[fHidden.num];
+                const B = len[fKnown.den];
+                const C = len[fKnown.num];
+                calcNum = `${formatNum(A)} \\times ${formatNum(B)}`;
+                calcDen = formatNum(C);
+            }
+
+            area.innerHTML = `
+                <p>Diouzh perzh Thales e c'haller skrivañ :</p>
+                \\[ \\frac{${L.A}${L.D}}{${L.A}${L.B}} = \\frac{${L.A}${L.E}}{${L.A}${L.C}} = \\frac{${L.D}${L.E}}{${L.B}${L.C}} \\]
+                <p>Gant an talvoudoù niverel :</p>
+                \\[ ${valLeft} = ${valRight} \\]
+                \\[ ${segments[hidden]} = \\frac{${calcNum}}{${calcDen}} = ${formatNum(len[hidden])} \\text{ cm} \\]
+            `;
+            area.style.display = "block";
+            if (window.MathJax) MathJax.typeset();
+        }
+
+        window.onload = () => {
+            setupUniversalHiDPI(canvas);
+            newFigure();
+        };
+
+        window.onresize = () => {
+            setupUniversalHiDPI(canvas);
+            if (currentFigure) drawFigure(currentFigure);
+        };
+    </script>
+</body>
+
+</html>

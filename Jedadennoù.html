@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+    <title>Jedadennoù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Sammañ
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Lemel
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Liesaat
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="4" checked>
+                    <span class="custom-checkbox"></span>
+                    Rannañ
+                </label>
+            </form>
+            <div class="number" id="jedad"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        // -------------------- Calculate ----------------------------
+
+        function generateAndDisplayLiesad() {
+            const faktor1 = randomFromInterval(2, 12);
+            const faktor2 = randomFromInterval(2, 12);
+            produ = faktor1 * faktor2;
+            result = `\\(${produ}\\)`;
+            const latex = `\\(${faktor1} \\times ${faktor2}\\)`;
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function generateAndDisplaySammad() {
+            const term1 = randomFromInterval(2, 99);
+            const term2 = randomFromInterval(2, 50);
+            somm = term1 + term2;
+            result = `\\(${somm}\\)`;
+            const latex = `\\(${term1} + ${term2}\\)`;
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function generateAndDisplayLemel() {
+            const term1 = randomFromInterval(2, 99);
+            const term2 = randomFromInterval(2, 50);
+            diff = term1 - term2;
+            result = `\\(${diff}\\)`;
+            const latex = `\\(${term1} - ${term2}\\)`;
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function generateAndDisplayRannadenn() {
+            const faktor1 = randomFromInterval(0, 12);
+            const faktor2 = randomFromInterval(0, 12);
+            const produ = faktor1 * faktor2;
+            if (faktor2 == 0) {
+                result = 'Dibosupl';
+            } else {
+                result = `\\(${faktor1}\\)`;
+            }
+            const latex = `\\(${produ} \\div ${faktor2}\\)`;
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function dibabJedad() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a jedadenn";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            switch (dibab) {
+                case "1":
+                    generateAndDisplaySammad();
+                    break;
+                case "2":
+                    generateAndDisplayLemel();
+                    break;
+                case "3":
+                    generateAndDisplayLiesad();
+                    break;
+                case "4":
+                    generateAndDisplayRannadenn();
+                    break;
+            }
+        }
+
+        dibabJedad();
+    </script>
+
+</body>
+
+</html>

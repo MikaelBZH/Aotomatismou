@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+    <title>Kevrennoù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Sammañ
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Lemel
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Liesaat
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="4" checked>
+                    <span class="custom-checkbox"></span>
+                    Rannañ
+                </label>
+            </form>
+            <div class="number" id="jedad"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        const paren = (n) => (n < 0 ? `(${n})` : `${n}`);
+
+        function liesKevr1() {
+
+            kevr1 = kevrenn(-12, 12);
+            kevr2 = kevrenn(-12, 12);
+            n1 = kevr1[0]; a1 = kevr1[1];
+            n2 = kevr2[0]; a2 = kevr2[1];
+            n = n1 * n2;
+            a = a1 * a2;
+            simp = BRB(n, a);
+
+            question = `\\( \\frac{${n1}}{${a1}} \\times \\frac{${n2}}{${a2}} \\)`;
+            result = `\\( \\frac{${n1} \\times ${paren(n2)}}{${a1} \\times ${paren(a2)}}
+                    = \\frac{${n}}{${a}}
+                    ${simp != 1 ? `= \\frac{${n} \\div ${simp}}{${a} \\div ${simp}}` : ``}
+                    ${simp != 1 ? `= \\frac{${n / simp}}{${a / simp}}` : ``}
+                    \\)`
+
+            document.getElementById('jedad').innerHTML = question;
+
+            embannLatex();
+        }
+
+        function rannKevr() {
+
+            kevr1 = kevrenn(-12, 12);
+            kevr2 = kevrenn(-12, 12);
+            n1 = kevr1[0]; a1 = kevr1[1];
+            n2 = kevr2[0]; a2 = kevr2[1];
+            n = n1 * a2;
+            a = a1 * n2;
+            simp = BRB(n, a);
+
+            const kinnig = randomFromInterval(0, 1);
+
+            if (kinnig === 0) {
+                question = `\\( \\frac{${n1}}{${a1}} \\div \\frac{${n2}}{${a2}} \\)`;
+            } else {
+                question = `\\( \\frac{\\frac{${n1}}{${a1}}}{\\frac{${n2}}{${a2}}} \\)`;
+            }
+
+            result = `\\( \\frac{${n1}}{${a1}} \\times \\frac{${a2}}{${n2}}
+                    = \\frac{${n1} \\times ${paren(a2)}}{${a1} \\times ${paren(n2)}}
+                    = \\frac{${n}}{${a}}
+                    ${simp != 1 ? `= \\frac{${n} \\div ${simp}}{${a} \\div ${simp}}` : ``}
+                    ${simp != 1 ? `= \\frac{${n / simp}}{${a / simp}}` : ``}
+                    \\)`
+
+            document.getElementById('jedad').innerHTML = question;
+
+            embannLatex();
+
+        }
+
+        function sammLemelKevr(dib) {
+
+            kevr1 = kevrenn(-12, 12);
+            kevr2 = kevrenn(-12, 12);
+            n1 = kevr1[0]; a1 = kevr1[1];
+            n2 = kevr2[0]; a2 = kevr2[1];
+            blb = BLB(a1, a2);
+
+            question = `\\( \\frac{${n1}}{${a1}} ${dib === 0 ? `+` : `-`} \\frac{${n2}}{${a2}} \\)`;
+
+            fakt1 = blb / a1;
+            fakt2 = blb / a2;
+
+            respS = n1 * fakt1 + n2 * fakt2;
+            respL = n1 * fakt1 - n2 * fakt2;
+            boutin = a1 * fakt1;
+
+            if (dib === 0) {
+                simp = BRB(respS, boutin);
+                N = respS / simp;
+            } else {
+                simp = BRB(respL, boutin);
+                N = respL / simp;
+            }
+
+            A = boutin / simp;
+
+            result = `\\[
+                    \\begin{aligned}
+                    ${a1 != a2
+                    ? `&\\frac{${n1} ${fakt1 != 1 ? `\\times ${fakt1}` : ``}}{${a1} ${fakt1 != 1 ? `\\times ${fakt1}` : ``}}
+                            ${dib === 0 ? `+` : `-`} \\frac{${n2} ${fakt2 != 1 ? `\\times ${fakt2}` : ``}}{${a2} ${fakt2 != 1 ? `\\times ${fakt2}` : ``}}
+                            = \\frac{${n1 * fakt1}}{${a1 * fakt1}} ${dib === 0 ? `+` : `-`} \\frac{${n2 * fakt2}}{${a2 * fakt2}}`
+                    : ``}
+                    = \\frac{${n1 * fakt1} ${dib === 0 ? `+` : `-`} ${paren(n2 * fakt2)}}{${a1 * fakt1}}
+                    = \\frac{${dib === 0 ? `${respS}` : `${respL}`}}{${boutin}}
+                    ${simp != 1 ? `\\\\  \\\\ &\\text{Simplaat:} \\\\` : ``}
+                    ${simp != 1 ? `&= \\frac{${dib === 0 ? `${respS}` : `${respL}`} \\div ${simp}}{${boutin} \\div ${simp}}` : ``}
+                    ${simp != 1 ? `= \\frac{${N}}{${A}}` : ``}
+                    ${N % A === 0 ? `= ${N / A}` : ``}
+                    \\end{aligned}
+                    \\]`;
+
+            document.getElementById('jedad').innerHTML = question;
+
+            embannLatex();
+
+        }
+
+        function dibabJedad() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a jedadenn";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            switch (dibab) {
+                case "1":
+                    sammLemelKevr(0);
+                    break;
+                case "2":
+                    sammLemelKevr(1);
+                    break;
+                case "3":
+                    liesKevr1();
+                    break;
+                case "4":
+                    rannKevr();
+                    break;
+            }
+        }
+
+        dibabJedad();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/algebrite@1.5.0/dist/algebrite.bundle-for-browser.js"></script>
+
+    <title>Liammadur Pitagoras</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+
+        <div class="container">
+            <div class="number" id="jedad"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="Pitagoras()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/graph_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        // --------------------- Pythagoras ------------------------------
+
+        function kostezioù(triangle, poentSkouerIndex) {
+
+            let poentAll = triangle.filter((index) => index != poentSkouerIndex);
+            let hip = poentAll.join('');
+            let kos1, kos2;
+            while (kos1 === hip || kos1 === undefined) {
+                poent = poentAll[randomFromInterval(0, 1)];
+                kos1 = poentSkouerIndex + poent;
+            }
+            while (kos2 === hip || kos2 === kos1 || kos2 === undefined) {
+                poent = poentAll[randomFromInterval(0, 1)];
+                kos2 = poentSkouerIndex + poent;
+            }
+            return [hip, kos1, kos2];
+        }
+
+        function trichornSkouer() {
+            let l1 = lizherenn[randomFromInterval(0, lizherenn.length - 1)];
+            let l2, l3;
+            while (l2 === l1 || l2 === undefined) { l2 = lizherenn[randomFromInterval(0, lizherenn.length - 1)]; }
+            while (l3 === l1 || l3 === l2 || l3 === undefined) { l3 = lizherenn[randomFromInterval(0, lizherenn.length - 1)]; }
+
+            triangle = [l1, l2, l3];
+            triangle_skrid = l1 + l2 + l3;
+            skouer = randomFromInterval(0, 2);
+            poentSkouer = triangle[skouer];
+        }
+
+        function Pitagoras() {
+
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            trichornSkouer();
+
+            kostez = kostezioù(triangle, poentSkouer);
+            kostezDaJediñ = kostez[randomFromInterval(0, 2)];
+
+            goulenn = `\\[
+            \\begin{aligned}
+            &${triangle_skrid} \\text{ a zo un tric'horn skouer e } ${poentSkouer}. \\\\
+            &\\text{Klask al liammadur a lak da jediñ } ${kostezDaJediñ}.
+            \\end{aligned}
+            \\]`;
+
+            if (kostezDaJediñ === kostez[0]) {
+                result = `\\(${kostez[0]}^2 = ${kostez[1]}^2 + ${kostez[2]}^2 \\)`;
+            } else if (kostezDaJediñ === kostez[1]) {
+                result = `\\(${kostez[1]}^2 = ${kostez[0]}^2 - ${kostez[2]}^2 \\)`;
+            } else {
+                result = `\\(${kostez[2]}^2 = ${kostez[0]}^2 - ${kostez[1]}^2 \\)`;
+            }
+
+
+            document.getElementById('jedad').innerHTML = goulenn;
+
+            embannLatex(); // Goulenn evit MathJax.typeset()
+
+        }
+
+        Pitagoras();
+    </script>
+
+</body>
+
+</html>

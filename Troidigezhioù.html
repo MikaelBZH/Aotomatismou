@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+    <title>Troidigezhioù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Hirderioù
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Gorreadoù
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Volumoù hep litr
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="4" checked>
+                    <span class="custom-checkbox"></span>
+                    Volumoù gant litr
+                </label>
+            </form>
+            <!--<div class="number" id="jedad"></div>-->
+            <div class="number" id="jedadContainer" style="position: relative;">
+                <div id="jedad"></div>
+                <button id="helpBtn" class="help-button">?</button>
+            </div>
+            <div id="helpContainer" style="margin: 20px auto; text-align: center; display: none;"></div>
+
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+
+        // ------------------------ Convert Units -------------------------------
+        let lastConversionParams = null;
+
+        function generateAndDisplayTroidigezh(renk) {
+
+            const container = document.getElementById("helpContainer");
+            container.style.display = "none";
+            container.innerHTML = "";
+
+            // Show the "?" help button
+            const helpBtn = document.getElementById("helpBtn");
+            helpBtn.style.display = "inline-block";
+            helpBtn.onclick = () => toggleConversionTable();
+
+
+            let orin, tizhout, renkSkrivetOrin = '', renkSkrivetTizhout = '';
+
+            const unannenoù = ["km", "hm", "dam", "m", "dm", "cm", "mm"];
+            const unanennoùLitr = ["kL", "hL", "daL", "L", "dL", "cL", "mL"];
+
+            const orinIndex = randomFromInterval(0, 6);
+            let tizhoutIndex = randomFromInterval(0, 6);
+            while (tizhoutIndex === orinIndex) {
+                tizhoutIndex = randomFromInterval(0, 6);
+            }
+
+            const digit = randomFromInterval(0, 3);
+            const n = randomEntireFromInterval(0, 999, digit);
+            const format_n = n.toLocaleString('fr-FR');
+
+            if (renk === 4) {
+
+                orin = unanennoùLitr[orinIndex];
+                tizhout = unanennoùLitr[tizhoutIndex];
+
+
+                if (orin === "kL" || tizhout === "kL") {
+                    (orin === "kL")
+                        ? ((orin = "m"), (renkSkrivetOrin = 3))
+                        : ((tizhout = "m"), (renkSkrivetTizhout = 3));
+                } else if (orin === "L" || tizhout === "L") {
+                    const y = randomFromInterval(0, 1);
+                    switch (y) {
+                        case 0:
+                            orin === "L"
+                                ? ((orin = "L"), (renkSkrivetOrin = ''))
+                                : ((tizhout = "L"), (renkSkrivetTizhout = ''));
+                            break;
+                        case 1:
+                            orin === "L"
+                                ? ((orin = "dm"), (renkSkrivetOrin = 3))
+                                : ((tizhout = "dm"), (renkSkrivetTizhout = 3));
+                            break;
+                    }
+                } else if (orin === "mL" || tizhout === "mL") {
+                    const y = randomFromInterval(0, 1);
+                    switch (y) {
+                        case 0:
+                            orin === "mL"
+                                ? ((orin = "mL"), (renkSkrivetOrin = ''))
+                                : ((tizhout = "mL"), (renkSkrivetTizhout = ''));
+                            break;
+                        case 1:
+                            orin === "mL"
+                                ? ((orin = "cm"), (renkSkrivetOrin = 3))
+                                : ((tizhout = "cm"), (renkSkrivetTizhout = 3));
+                            break;
+                    }
+                }
+
+                // Compute conversion
+                r = n * (10 ** (tizhoutIndex - orinIndex));
+
+            } else {
+
+                orin = unannenoù[orinIndex];
+                tizhout = unannenoù[tizhoutIndex];
+
+                renkSkrivetOrin = renkSkrivetTizhout = (renk === 1 ? '' : renk);
+
+                // Compute conversion
+                r = n * (10 ** ((tizhoutIndex - orinIndex) * renk));
+            }
+
+            latex = `\\( ${format_n} \\text{ ${orin}}^{${renkSkrivetOrin}} = \\ldots \\text{ ${tizhout}}^{${renkSkrivetTizhout}} \\)`;
+
+            // Smart formatting for result
+            let format_resp;
+            if (r === 0) {
+                format_resp = "0";
+            } else if (Math.abs(r) < 1e-6) {
+                // Very small → use fixed decimal format
+                const decimalShift = Math.abs(tizhoutIndex - orinIndex) * renk;
+                const fix = Math.min(20, decimalShift + 3);
+                format_resp = r.toFixed(fix)
+                    .replace('.', ',')
+                    .replace(/0+$/, '')
+                    .replace(/,$/, '');
+            } else {
+                // Normal range → allow up to 10 decimals without forcing trailing zeros
+                format_resp = r.toLocaleString('fr-FR', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 10
+                });
+            }
+
+            result = `\\( ${format_n} \\text{ ${orin}}^{${renkSkrivetOrin}} = ${format_resp} \\text{ ${tizhout}}^{${renkSkrivetTizhout}} \\)`;
+
+            document.getElementById('jedad').innerHTML = latex;
+
+
+            // Decide unit type and direction for animation
+            const unitsArray =
+                (renk === 4)
+                    ? ["(kL)", "hL", "daL", "L", "dL", "cL", "mL"]
+                    : ["km", "hm", "dam", "m", "dm", "cm", "mm"];
+
+            // Each step in area = ×100 (shift by 2 columns)
+            // Each step in volume = ×1000 (shift by 3 columns)
+            // For length and liters = ×10 (shift by 1 column)
+            let stepMultiplier = 1;
+            if (renk === 2) stepMultiplier = 2;
+            else if (renk === 3) stepMultiplier = 3;
+
+            // direction = how many unit columns the number should move visually
+            const direction = (tizhoutIndex - orinIndex) * stepMultiplier;
+
+            //displayConversionTable(format_n, orinIndex, unitsArray, direction, stepMultiplier, renk);
+            // Save the parameters for later use when help button is clicked
+            lastConversionParams = { format_n, orinIndex, unitsArray, direction, stepMultiplier, renk };
+
+            // Set up the help button to toggle using those parameters
+            helpBtn.onclick = () => toggleConversionTable(...Object.values(lastConversionParams));
+
+            embannLatex(); // Re-render LaTeX
+
+        }
+
+        function displayConversionTable(value, unitIndex, unitsArray, direction = 0, stepMultiplier, renk) {
+
+            window.removeEventListener('resize', adjustCommaY);
+
+            const container = document.getElementById("helpContainer");
+            container.innerHTML = ""; // clear old table
+
+            // Normalize value
+            let numStr = value.toString() //.replace(",", ".");
+            if (!numStr.includes(",")) numStr += ",0";
+            const [intPart, decPart] = numStr.split(",");
+            const digits = [...intPart, ...(decPart || "")];
+            const intDigits = [...intPart];
+
+            // --- Table structure ---
+            const table = document.createElement("table");
+            const baseCellWidthPx = 32;
+            const totalTableWidthPx = 12 * stepMultiplier * baseCellWidthPx;
+
+            table.style.borderCollapse = "collapse";
+            table.style.tableLayout = "fixed";
+            table.style.width = totalTableWidthPx;
+            table.style.margin = "auto";
+            table.style.color = "white";
+            table.style.fontSize = "1.3em";
+            table.style.textAlign = "center";
+
+            // Header (units)
+            const headerRow = document.createElement("tr");
+            const thWidthPx = stepMultiplier * baseCellWidthPx;
+            const thWidth = `${totalTableWidthPx}px`;
+
+            for (i = 0; i < 2; i++) {
+                const th = document.createElement("th");
+                th.colSpan = stepMultiplier;
+                th.style.width = thWidth;
+                th.textAlign = "right";
+                th.style.border = 'none';
+                th.style.padding = "5px 10px";
+                headerRow.appendChild(th);
+            }
+            for (i = 0; i < 7; i++) {
+                const th1 = document.createElement("th");
+                th1.colSpan = stepMultiplier;
+                th1.style.width = thWidth;
+                th1.innerHTML = (stepMultiplier === 1 ? unitsArray[i] : unitsArray[i] + "&sup" + stepMultiplier + ";");
+                th1.textAlign = "right";
+                th1.style.border = "1px solid #888";
+                th1.style.padding = "5px 10px";
+                headerRow.appendChild(th1);
+            }
+            for (i = 0; i < 3; i++) {
+                const th = document.createElement("th");
+                th.colSpan = stepMultiplier;
+                th.style.width = thWidth;
+                th.textAlign = "right";
+                th.style.border = 'none';
+                th.style.padding = "5px 10px";
+                headerRow.appendChild(th);
+            }
+            table.appendChild(headerRow);
+
+            if (renk === 4) {
+                const headerRow2 = document.createElement("tr");
+                for (i = 0; i < 12; i++) {
+                    const th = document.createElement("th");
+                    switch (i) {
+                        case 2: th.innerHTML = "m&sup3;";
+                            break;
+                        case 5: th.innerHTML = "dm&sup3;";
+                            break;
+                        case 8: th.innerHTML = "cm&sup3;";
+                            break;
+                    }
+                    ((i < 2) || (i > 8) ? th.style.border = "none" : th.style.border = "1px solid #888");
+                    th.style.padding = "5px 10px";
+                    headerRow2.appendChild(th);
+                }
+                table.appendChild(headerRow2);
+            }
+
+            // Data row
+            const dataRow = document.createElement("tr");
+            for (i = 0; i < 12 * stepMultiplier; i++) {
+                const td = document.createElement("td");
+                ((i < 2 * stepMultiplier) || (i > (9 * stepMultiplier - 1)) ? td.style.border = "none" : td.style.border = "1px solid #888");
+                td.style.height = `${baseCellWidthPx}px`;
+                td.style.width = `${baseCellWidthPx}px`;
+                dataRow.appendChild(td);
+            };
+            table.appendChild(dataRow);
+
+            // --- Place digits (just as visual fill) ---
+            let pos = (unitIndex + 3) * stepMultiplier - 1;
+
+            // ------------------------------ Just added set the zeros -----------------------
+            /*const totalCells = 12 * stepMultiplier;
+            const startIndex = pos - intDigits.length + 1;
+            const endIndex = startIndex + digits.length - 1;
+            let displayDigits = [...digits];
+        
+            if (direction > 0) {
+                for (let i = 0; i < direction; i++) {
+                    displayDigits.push("0");
+                }
+            }
+        
+            else if (direction < 0) {
+                for (let i = 0; i < Math.abs(direction); i++) {
+                    displayDigits.unshift("0");
+                }
+            }
+        
+            // Now place all digits (including zeros) in cells
+            for (let j = 0; j < displayDigits.length; j++) {
+                const cellIndex = startIndex + j;
+                if (cellIndex < 0 || cellIndex >= totalCells) continue;
+        
+                const span = document.createElement("span");
+                span.textContent = displayDigits[j];
+                dataRow.children[cellIndex].appendChild(span);
+            }*/
+
+            // ------------------------------ End just added -------------------
+
+            for (let j = 0; j < digits.length; j++) {
+                const isIntegerPart = j < intDigits.length;
+                const isNonZeroDecimal = j >= intDigits.length && digits[j] != 0;
+
+                if (isIntegerPart || isNonZeroDecimal) {
+                    const cellIndex = pos + j - intDigits.length + 1;
+                    const span = document.createElement("span");
+                    span.textContent = digits[j];
+                    dataRow.children[cellIndex].appendChild(span);
+                }
+            } // this code works already well
+
+            // Positioning
+            container.style.position = "relative";
+            container.style.width = "100%";
+            container.appendChild(table);
+
+            // Measure one cell to position the comma vertically
+            const sampleCell = dataRow.children[0];
+            const cellRect = sampleCell.getBoundingClientRect();
+            const parentRect = container.getBoundingClientRect();
+
+            // Calculate vertical center of the cell (relative to container)
+            const centerY = cellRect.top - parentRect.top + cellRect.height / 2;
+
+
+            // --- Animate comma movement ---
+            const comma = document.createElement("div");
+            comma.textContent = ",";
+            comma.style.position = "absolute";
+            comma.style.fontWeight = "bold";
+            comma.style.color = "#e85c94ff";
+            comma.style.transition = "transform 2s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
+            //comma.style.top = "60%";
+            comma.style.left = "0";
+            comma.style.fontSize = "2em";
+
+            // Position vertically so comma sits nicely in line with digits
+            // tweak `+ offset` to raise/lower slightly if needed
+            const verticalOffset = -8; // adjust this pixel value if needed
+            comma.style.top = `${centerY + verticalOffset}px`;
+
+            container.appendChild(comma);
+
+            // --- Position comma vertically based on cell height ---
+            function adjustCommaY() {
+                const sampleCell = dataRow.children[0];
+                if (!sampleCell) return;
+                const cellRect = sampleCell.getBoundingClientRect();
+                const parentRect = container.getBoundingClientRect();
+
+                const centerY = cellRect.top - parentRect.top + cellRect.height / 2;
+                const verticalOffset = -8; // fine-tune visually
+                comma.style.top = `${centerY + verticalOffset}px`;
+            }
+
+            // Initial vertical alignment
+            adjustCommaY();
+
+            // Update comma position if the window resizes
+            window.addEventListener('resize', adjustCommaY);
+
+
+            // Find initial and final positions
+            const initialIndex = (unitIndex + 3) * stepMultiplier - 1;
+            const finalIndex = initialIndex + direction;
+
+            // Get the center position of a table cell
+            const getCellCenterX = (index) => {
+                const td = dataRow.children[index];
+                if (!td) {
+                    console.log(`Cell at index ${index} not found!`);
+                    return 0;
+                }
+                const rect = td.getBoundingClientRect();
+                const parentRect = container.getBoundingClientRect();
+                return rect.left - parentRect.left + rect.width;
+            };
+
+            // Set comma at starting position
+            const startX = getCellCenterX(initialIndex);
+            comma.style.left = `${startX}px`;
+            comma.offsetWidth;
+
+            // Animate to new position
+            setTimeout(() => {
+                const endX = getCellCenterX(finalIndex);
+                const deltaX = endX - startX;
+                comma.style.transform = `translate(${deltaX}px)`;
+            }, 1000);
+
+        }
+
+        // Toggle table visibility
+        function toggleConversionTable(value, unitIndex, unitsArray, direction = 0, stepMultiplier, renk) {
+            const container = document.getElementById("helpContainer");
+            const nowHidden = container.style.display === "none" || !container.style.display;
+
+            if (nowHidden) {
+                container.style.display = "block";
+
+                // Ensure the table is created only when visible
+                requestAnimationFrame(() => {
+                    // If no parameters were passed (e.g., user reopened help)
+                    if (!value && lastConversionParams) {
+                        ({ format_n: value, orinIndex: unitIndex, unitsArray, direction, stepMultiplier, renk } = lastConversionParams);
+                    }
+                    displayConversionTable(value, unitIndex, unitsArray, direction, stepMultiplier, renk);
+                });
+            } else {
+                container.style.display = "none";
+                container.innerHTML = ""; // Optional: clear when hidden
+            }
+        }
+
+        function dibabJedad() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a droïdigezh";
+                document.getElementById("respontBtn").style.display = "none";
+                document.getElementById("helpBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            switch (dibab) {
+                case "1":
+                    generateAndDisplayTroidigezh(1);
+                    break;
+                case "2":
+                    generateAndDisplayTroidigezh(2);
+                    break;
+                case "3":
+                    generateAndDisplayTroidigezh(3);
+                    break;
+                case "4":
+                    generateAndDisplayTroidigezh(4);
+                    break;
+            }
+        }
+
+        dibabJedad();
+    </script>
+
+</body>
+
+</html>

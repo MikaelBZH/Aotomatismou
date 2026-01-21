@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Gorreadoù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+    <div id="content" class="main">
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Skouergornek
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Tric'horn
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Disk
+                </label>
+            </form>
+            <div class="number" id="jedad"></div>
+            <canvas id="geoCanvas" width="500" height="400" style="border:1px solid #ccc;"></canvas>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/graph_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+
+    <script>
+        /* =========================
+           CONFIG & MATH TOOLS
+        ========================= */
+
+        let currentFigure = null;
+        let autoTransform = null;
+
+        function generateNumericData(figure) {
+
+            let AB, AC, AD, CD, BC;
+
+            switch (figure) {
+                case "rectangle":
+                    AB = randomFromInterval(2, 12);
+                    BC = randomFromInterval(2, 12);
+                    return {
+                        AB, BC
+                    }
+                    break;
+                case "triangle":
+                    let ment = generateSquareTriangle();
+                    AC = ment.h;
+                    AB = ment.a + randomFromInterval(-5, 10);
+                    AD = ment.a;
+                    CD = ment.b;
+
+                    return {
+                        AB, AC, AD, CD
+                    };
+                    break;
+                case "circle":
+                    AB = randomFromInterval(1, 12);
+                    do AC = randomFromInterval(2, 24); while (AC % 2 !== 0)
+                    return {
+                        AB, AC
+                    }
+                    break;
+            }
+
+        }
+
+        /* =========================
+           GEOMETRY GENERATION
+        ========================= */
+        function generateTriangle(lengths) {
+            const A = { x: 0, y: 0 };
+            const B = { x: lengths.AB, y: 0 };
+            const C = { x: lengths.AD, y: lengths.CD };
+            const D = { x: lengths.AD, y: 0 };
+
+            return { A, B, C, D };
+        }
+
+        function rotatePoint(p, angle) {
+            return {
+                x: p.x * Math.cos(angle) - p.y * Math.sin(angle),
+                y: p.x * Math.sin(angle) + p.y * Math.cos(angle)
+            };
+        }
+
+        /* =========================
+           CANVAS & HiDPI
+        ========================= */
+        const canvas = document.getElementById("geoCanvas");
+        const { ctx, width: w, height: h } = setupUniversalHiDPI(canvas);
+
+        function computeAutoTransform(fig) {
+            const points = [fig.A, fig.B, fig.C, fig.D];
+            const minX = Math.min(...points.map(p => p.x));
+            const maxX = Math.max(...points.map(p => p.x));
+            const minY = Math.min(...points.map(p => p.y));
+            const maxY = Math.max(...points.map(p => p.y));
+
+            const rect = canvas.getBoundingClientRect();
+            const margin = 60;
+            const scaleX = (rect.width - margin * 2) / (maxX - minX);
+            const scaleY = (rect.height - margin * 2) / (maxY - minY);
+            const scale = Math.min(scaleX, scaleY);
+
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+
+            return { scale, centerX, centerY, rectWidth: rect.width, rectHeight: rect.height };
+        }
+
+        function toCanvas(p) {
+            const { scale, centerX, centerY, rectWidth, rectHeight } = autoTransform;
+            return {
+                x: rectWidth / 2 + (p.x - centerX) * scale,
+                y: rectHeight / 2 - (p.y - centerY) * scale
+            };
+        }
+
+        function drawFigure(fig) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            autoTransform = computeAutoTransform(fig);
+
+            const cA = toCanvas(fig.A), cB = toCanvas(fig.B), cC = toCanvas(fig.C), cD = toCanvas(fig.D);
+
+            ctx.lineWidth = 2.5;
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+
+            let points;
+
+            drawSeg(cA, cB, "#9ca3af");
+            drawSeg(cA, cC, "#9ca3af");
+            drawSeg(cB, cC, "#9ca3af");
+            drawSeg(cC, cD, "#9ca3af");
+
+            if (fig.lengths.AD > fig.lengths.AB) drawSeg(cB, cD, "#9ca3af", true);
+
+            if (cA.x === cD.x || cB.x === cD.x) {
+                points = [
+                    { p: cA, n: "A" }, { p: cB, n: "B" }, { p: cC, n: "C" }
+                ];
+            } else {
+                points = [
+                    { p: cA, n: "A" }, { p: cB, n: "B" }, { p: cC, n: "C" },
+                    { p: cD, n: "D" }
+                ];
+            }
+
+            points.forEach(item => {
+                const label = fig.labels[item.n];
+                ctx.fillStyle = "white";
+                ctx.font = "bold 19px Arial";
+                const offsetX = item.p.x > canvas.getBoundingClientRect().width / 2 ? 10 : -25;
+                const offsetY = item.p.y > canvas.getBoundingClientRect().height / 2 ? 20 : -10;
+                ctx.fillText(label, item.p.x + offsetX, item.p.y + offsetY);
+                ctx.beginPath();
+                ctx.arc(item.p.x, item.p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawSeg(p1, p2, color, dashed = false) {
+            ctx.beginPath();
+            if (dashed) { ctx.setLineDash([5, 10]) } else { ctx.setLineDash([]) };
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color;
+            ctx.stroke();
+        }
+
+        /* =========================
+           CORE LOGIC
+        ========================= */
+        function formatNum(n) {
+            return Number.isInteger(n) ? n.toString() : n.toFixed(1).replace('.', ',');
+        }
+
+        let canva = document.getElementById("geoCanvas");
+
+        function newRectangle() {
+
+            canva.style.display = "none";
+
+            const lengths = generateNumericData("rectangle");
+            const labels = [...lizherenn].sort(() => Math.random() - 0.5);
+            const L = { A: labels[0], B: labels[1], C: labels[2], D: labels[3] };
+
+
+
+            let dataHtml = `\\[ \\begin{aligned}
+            & \\text{Jediñ gorread ar skouergormeg } ${L.A}${L.B}${L.C}${L.D} \\text{ gant : } \\\\
+            &${L.A}${L.B} = ${lengths.AB} \\text{ cm ; } ${L.B}${L.C} = ${lengths.BC} \\text{ cm.} \\\\
+            \\end{aligned} \\]`;
+
+            let respont = lengths.AB * lengths.BC;
+
+            result = `\\[ \\begin{aligned}
+                &G_{${L.A}${L.B}${L.C}${L.D}} = ${L.A}${L.B} \\times ${L.B}${L.C} \\\\
+                &G_{${L.A}${L.B}${L.C}${L.D}} = ${lengths.AB} \\times ${lengths.BC} \\\\
+                &G_{${L.A}${L.B}${L.C}${L.D}} = ${formatNum(respont)} \\text{ cm}^{2}
+            \\end{aligned} \\]`;
+
+            document.getElementById("jedad").innerHTML = dataHtml;
+            document.getElementById("respontBtn").style.display = "inline";
+
+            embannLatex();
+
+        }
+
+        function newTriangle() {
+
+            canva.style.display = "block";
+
+            const lengths = generateNumericData("triangle");
+            let fig = generateTriangle(lengths);
+
+            const angle = Math.random() * Math.PI * 2;
+            ["A", "B", "C", "D"].forEach(k => fig[k] = rotatePoint(fig[k], angle));
+
+            fig.lengths = lengths;
+            const labels = [...lizherenn].sort(() => Math.random() - 0.5);
+            fig.labels = { A: labels[0], B: labels[1], C: labels[2], D: labels[3] };
+
+            currentFigure = fig;
+
+            const L = fig.labels;
+            const len = fig.lengths;
+
+            let segments;
+
+            if (fig.lengths.AD === 0) {
+                segments = {
+                    "AB": `${L.A}${L.B}`,
+                    "CD": `${L.C}${L.A}`,
+                    "CB": `${L.C}${L.B}`
+                };
+            } else if (fig.lengths.AD === fig.lengths.AB) {
+                segments = {
+                    "AB": `${L.A}${L.B}`,
+                    "CD": `${L.C}${L.B}`,
+                    "AC": `${L.A}${L.C}`
+                };
+            } else {
+                segments = {
+                    "AB": `${L.A}${L.B}`,
+                    "CD": `${L.C}${L.D}`,
+                    "AC": `${L.A}${L.C}`
+                };
+            }
+
+            let x = Math.abs(lengths.AB);
+
+            const items = [
+                { seg: "AB", val: x },
+                { seg: "CD", val: lengths.CD },
+                { seg: "AC", val: lengths.AC }
+            ];
+
+            // Mélange aléatoire (Fisher–Yates)
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+
+            let h1 = `${segments[items[0].seg]} = ${formatNum(items[0].val)}`;
+            let h2 = `${segments[items[1].seg]} = ${formatNum(items[1].val)}`;
+            let h3 = `${segments[items[2].seg]} = ${formatNum(items[2].val)}`;
+
+
+            let dataHtml = `\\[ \\begin{aligned}
+            & \\text{Jediñ gorread } ${L.A}${L.B}${L.C} \\text{ gant : } \\\\
+            &${h1} \\text{ cm ; } ${h2} \\text{ cm ;} \\\\
+            &${h3} \\text{ cm.} \\\\
+            &\\text{pa ouzer eo skouer } (${segments["AB"]}) \\text{ gant } (${segments["CD"]}). \\\\
+            \\end{aligned} \\]`;
+
+            let respont = len.AB * len.CD / 2;
+
+            result = `\\[ \\begin{aligned}
+                &G_{${L.A}${L.B}${L.C}} = \\frac{${segments["AB"]} \\times ${segments["CD"]}}{2} \\\\
+                &G_{${L.A}${L.B}${L.C}} = \\frac{${formatNum(x)} \\times ${formatNum(lengths.CD)}}{2} \\\\
+                &G_{${L.A}${L.B}${L.C}} = ${formatNum(respont)} \\text{ cm}^{2}
+            \\end{aligned} \\]`;
+
+            document.getElementById("jedad").innerHTML = dataHtml;
+            document.getElementById("respontBtn").style.display = "inline";
+            drawFigure(fig);
+            embannLatex();
+        }
+
+        function newCircle() {
+
+            canva.style.display = "none";
+            let dataHtml;
+
+            const lengths = generateNumericData("circle");
+            const labels = [...lizherenn].sort(() => Math.random() - 0.5);
+            const L = { A: labels[0], B: labels[1], C: labels[2] };
+
+            if (Math.random() < 0.5) {
+
+                // Roet e vez ar skin
+                dataHtml = `\\[ \\begin{aligned}
+            & \\text{Jediñ gorread an disk } ${L.B} \\text{ e greiz} \\\\
+            &\\text{pa ouzer eo e skin } ${L.A}${L.B} = ${lengths.AB} \\text{ cm.} \\\\
+            &\\text{Embannet vo an talvoud rik.}
+            \\end{aligned} \\]`;
+
+                let respont = lengths.AB ** 2;
+
+                result = `\\[ \\begin{aligned}
+                &G_{disk} = \\pi \\times ${L.A}${L.B}^{2} \\\\
+                &G_{disk} = \\pi \\times ${lengths.AB}^{2} \\\\
+                &G_{disk} = \\pi \\times ${respont} \\\\
+                &G_{disk} =  ${respont} \\pi \\text{ cm}^{2}
+            \\end{aligned} \\]`;
+
+            } else {
+                // Roet e vez an diametr
+                dataHtml = `\\[ \\begin{aligned}
+            & \\text{Jediñ gorread an disk } ${L.B} \\text{ e greiz} \\\\
+            &\\text{pa ouzer eo e ziametr } ${L.A}${L.C} = ${lengths.AC} \\text{ cm.} \\\\
+            &\\text{Embannet vo an talvoud rik.}
+            \\end{aligned} \\]`;
+
+                let skin = lengths.AC / 2;
+                let respont = skin ** 2;
+
+                result = `\\[ \\begin{aligned}
+                &G_{disk} = \\pi \\times ${L.A}${L.B}^{2} \\\\
+                &${L.A}${L.B} = ${L.A}${L.C} \\div 2 = ${lengths.AC} \\div 2 = ${skin} \\text{ cm}\\\\
+                &G_{disk} = \\pi \\times ${skin}^{2} \\\\
+                &G_{disk} = \\pi \\times ${respont} \\\\
+                &G_{disk} =  ${respont} \\pi \\text{ cm}^{2}
+            \\end{aligned} \\]`;
+            }
+
+            document.getElementById("jedad").innerHTML = dataHtml;
+            document.getElementById("respontBtn").style.display = "inline";
+
+            embannLatex();
+
+        }
+
+        function dibabJedad() {
+
+            const area = document.getElementById("respontArea");
+            area.style.display = "none";
+
+            const goulenn = document.getElementById("jedad");
+            goulenn.textContent = "";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                goulenn.textContent = "Dibab unan pe meur a jedadenn";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+            const n = randomFromInterval(0, 1);
+
+            switch (dibab) {
+                case "1":
+                    newRectangle();
+                    break;
+                case "2":
+                    newTriangle();
+                    break;
+                case "3":
+                    newCircle();
+                    break;
+            }
+        }
+
+        window.onload = () => {
+            setupUniversalHiDPI(canvas);
+            dibabJedad();
+        };
+
+        window.onresize = () => {
+            setupUniversalHiDPI(canvas);
+            if (currentFigure) drawFigure(currentFigure);
+        };
+    </script>
+</body>
+
+</html>

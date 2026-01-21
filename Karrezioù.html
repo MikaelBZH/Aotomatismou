@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Karrezioù ha gwrizhiennoù karrez peurvad</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <div class="number" id="randomNumber"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="generateAndDisplayNumber()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+        function generateAndDisplayNumber() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const faktor = randomFromInterval(1, 12);
+            const karrez = faktor ** 2;
+
+            db = randomFromInterval(0, 1);
+            switch (db) {
+                case 0:
+                    latex = `\\(${faktor}^2\\)`;
+                    result = `\\(${karrez}\\)`;
+                    break;
+                case 1:
+                    latex = `\\(\\sqrt{${karrez}}\\)`;
+                    result = `\\(${faktor}\\)`;
+                    break;
+            }
+
+            document.getElementById('randomNumber').innerHTML = latex;
+            //document.getElementById('respontArea').style.display = "inline-block";
+
+            embannLatex();
+        }
+
+        generateAndDisplayNumber();
+    </script>
+
+</body>
+
+</html>

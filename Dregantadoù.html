@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+    <title>Dregantadoù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Dregantad un niver
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Kresk pe digresk
+                </label>
+            </form>
+            <div class="number" id="jedadContainer" style="position: relative;">
+                <div id="jedad"></div>
+                <button id="helpBtn" class="help-button">?</button>
+            </div>
+            <div id="helpContainer" style="margin: 20px auto; text-align: left; display: none; white-space: nowrap;">
+            </div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+
+        function dregantadNiver() {
+            helpButton = document.getElementById("helpBtn");
+            helpButton.style.display = "block";
+            helpContainer = document.getElementById("helpContainer");
+            helpContainer.style.display = "none";
+
+            const helpBtn = document.getElementById("helpBtn");
+
+            let dregant = [1, 10, 25, 50, 100];
+            let niver = randomFromInterval(1, 150);
+            let choosenPercent = dregant[randomFromInterval(0, dregant.length - 1)];
+
+            let latex = `\\(\\text{Jediñ } ${choosenPercent} \\% \\text{ eus } ${niver}.\\)`;
+
+            //console.log(choosenPercent);
+            helpBtn.onclick = () => toogleDregantadHelp(choosenPercent, niver);
+
+            let respont = choosenPercent * niver / 100;
+            respontFormatted = new Intl.NumberFormat('fr-FR').format(respont);
+            let inversLiesaer = 100 / choosenPercent;
+            if (choosenPercent === 1 || choosenPercent === 10) {
+                liesaer = choosenPercent / 100;
+                liesaerFormatted = new Intl.NumberFormat('fr-FR').format(liesaer);
+            } else {
+                liesaerFormatted = `\\frac{1}{${inversLiesaer}}`;
+            }
+
+
+
+            if (choosenPercent !== 100) {
+                result = `\\[
+                    \\begin{aligned}
+                    &${choosenPercent} \\% \\text{ zo } \\frac{${choosenPercent}}{100} = ${liesaerFormatted} \\\\
+                    &${niver} \\times ${liesaerFormatted} ${(choosenPercent === 1 || choosenPercent === 10) ? `` : `= ${niver} \\div ${inversLiesaer}`} = ${respontFormatted}
+                    \\end{aligned}
+                    \\]`;
+            } else {
+                result = `\\( ${respont} \\)`;
+            }
+
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function kreskDregantad(n) {
+            helpButton = document.getElementById("helpBtn");
+            helpButton.style.display = "none";
+
+            let dregant = randomFromInterval(1, 10) * 10;
+            let niver = randomFromInterval(1, 5) * 100;
+            dregantDegel = dregant / 100;
+            dregantDegelFormatted = new Intl.NumberFormat('fr-FR').format(dregantDegel);
+            kreskDigresk = niver * dregantDegel;
+            kreskDigreskFormatted = new Intl.NumberFormat('fr-FR').format(kreskDigresk);
+
+            const choose = randomFromInterval(0, 1);
+
+            switch (choose) {
+                case 0:
+                    latex = `\\(\\text{Jediñ } ${niver} \\text{ kresket eus } ${dregant} \\% .\\)`;
+                    liesaer = 1 + dregant / 100;
+                    liesaerFormatted = new Intl.NumberFormat('fr-FR').format(liesaer);
+                    respont = Math.round(niver * liesaer * 100) / 100;
+                    respontFormatted = new Intl.NumberFormat('fr-FR').format(respont);
+
+                    result = `\\[
+                            \\begin{aligned}
+                            &= ${niver} \\times \\left( 1 + \\frac{${dregant}}{100} \\right) \\\\
+                            &= ${niver} \\times ${liesaerFormatted} \\left( = ${niver} + ${niver} \\times ${dregantDegelFormatted} \\right) \\\\
+                            &= ${respontFormatted} \\left( = ${niver} + ${kreskDigreskFormatted} \\right)
+                            \\end{aligned}
+                            \\]`;
+                    break;
+                case 1:
+                    latex = `\\(\\text{Jediñ } ${niver} \\text{ digresket eus } ${dregant} \\% .\\)`;
+                    liesaer = 1 - dregant / 100;
+                    liesaerFormatted = new Intl.NumberFormat('fr-FR').format(liesaer);
+                    respont = Math.round(niver * liesaer * 100) / 100;
+                    respontFormatted = new Intl.NumberFormat('fr-FR').format(respont);
+                    result = `\\[
+                            \\begin{aligned}
+                            &= ${niver} \\times \\left( 1 - \\frac{${dregant}}{100} \\right) \\\\
+                            &= ${niver} \\times ${liesaerFormatted} \\left( = ${niver} - ${niver} \\times ${dregantDegelFormatted} \\right) \\\\
+                            &= ${respontFormatted} \\left( = ${niver} - ${kreskDigreskFormatted} \\right)
+                            \\end{aligned}
+                            \\]`;
+                    break;
+            }
+
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function displayDregantadHelp(p, niv) {
+            const container = document.getElementById("helpContainer");
+
+            container.innerHTML = ""; // clear old
+
+            switch (p) {
+                case 1:
+                case 10:
+                    container.innerHTML = `\\( \\text{Jediñ } ${p} \\% \\text{ eus } ${niv} \\text{ a zo jediñ } ${niv} \\times \\frac{${p}}{100}.\\)`;
+                    embannLatex();
+                    break;
+                case 25: container.innerHTML = "25% a zo ur c'hard";
+                    break;
+                case 50: container.innerHTML = "50% a zo un hanter";
+                    break;
+                case 100: container.innerHTML = "100% a zo pep tra";
+                    break;
+            }
+        }
+
+        function toogleDregantadHelp(p, n) {
+            const container = document.getElementById("helpContainer");
+            const nowHidden = container.style.display === "none" || !container.style.display;
+
+            if (nowHidden) {
+                container.style.display = "block";
+                displayDregantadHelp(p, n);
+            } else {
+                container.style.display = "none";
+                container.innerHTML = ""; // Optional: clear when hidden
+            }
+        }
+
+        function dibabJedad() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a jedadenn";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+            const n = randomFromInterval(0, 1);
+
+            switch (dibab) {
+                case "1":
+                    dregantadNiver();
+                    break;
+                case "2":
+                    kreskDregantad(n);
+                    break;
+            }
+        }
+
+        dibabJedad();
+    </script>
+
+</body>
+
+</html>

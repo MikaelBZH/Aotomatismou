@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Daveañ war ar plaen</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Lenn kenurzhiennoù
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Daveañ ur poent
+                </label>
+            </form>
+            <div class="number" id="jedad"></div>
+            <canvas id="repere" width="600" height="600" style="border:1px solid #ccc; cursor:pointer;"></canvas>
+            <div>
+                <button class="button" onclick="diskouezRespontDaveañ()" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/graph_functions.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        const canvas = document.getElementById("repere");
+        const { ctx, width: w, height: h } = setupUniversalHiDPI(canvas);
+
+        const O = { x: w / 2, y: h / 2 };
+        let unit = 30;
+
+        let userPoint = null;   // Point placé par l'utilisateur
+        let target = { x: 0, y: 0 }; // Point cible (soit à lire, soit à placer)
+        let isValidated = false;
+        let currentMode = "lenn"; // "lenn" ou "lechiañ"
+
+        function drawRepere() {
+            ctx.clearRect(0, 0, w, h);
+            drawGrid();
+            drawAxes();
+
+            if (currentMode === "lenn") {
+                // En mode lecture, on affiche toujours le point cible
+                drawPoint(target.x, target.y, "red");
+            } else if (currentMode === "lechiañ") {
+                // En mode placement, on affiche le point de l'utilisateur s'il existe
+                if (userPoint) {
+                    drawPoint(userPoint.x, userPoint.y, "red");
+                }
+                // Si erreur après validation, on montre la correction en vert
+                if (isValidated && userPoint) {
+                    if (userPoint.x !== target.x || userPoint.y !== target.y) {
+                        drawPoint(target.x, target.y, "#00ff00");
+                    }
+                }
+            }
+        }
+
+        // ---------- Logique des Exercices ----------
+
+        /**
+         * EXERCICE 1 : Lire les coordonnées d'un point
+         */
+        function lennKenurzhienn() {
+            currentMode = "lenn";
+            isValidated = false;
+            userPoint = null;
+
+            target.x = randomFromInterval(-8, 8);
+            target.y = randomFromInterval(-8, 8);
+
+            const jedad = document.getElementById("jedad");
+            if (jedad) {
+                jedad.innerHTML = `\\( \\text{Lenn kenurzhiennoù ar poent.} \\)`;
+                embannLatex();
+            }
+
+            const respontArea = document.getElementById("respontArea");
+            if (respontArea) {
+                respontArea.textContent = "";
+                respontArea.style.display = "none";
+            }
+
+            drawRepere();
+        }
+
+        /**
+         * EXERCICE 2 : Placer un point sur le repère
+         */
+        function lechiañPoent() {
+            currentMode = "lechiañ";
+            isValidated = false;
+            userPoint = null;
+
+            target.x = randomFromInterval(-8, 8);
+            target.y = randomFromInterval(-8, 8);
+
+            const jedad = document.getElementById("jedad");
+            if (jedad) {
+                jedad.innerHTML = `\\( \\text{Lec'hiañ ar poent } (${target.x} \\text{ ; } ${target.y}) \\)`;
+                embannLatex();
+            }
+
+            const respontArea = document.getElementById("respontArea");
+            if (respontArea) {
+                respontArea.textContent = "";
+                respontArea.style.display = "none";
+            }
+
+            drawRepere();
+        }
+
+        /**
+         * Validation globale (bouton Respont)
+         */
+        function diskouezRespontDaveañ() {
+            const respontArea = document.getElementById("respontArea");
+            if (!respontArea) return;
+
+            isValidated = true;
+
+            if (currentMode === "lechiañ") {
+                if (!userPoint) {
+                    respontArea.innerHTML = "Lec'hiañ ur poent da gentañ !";
+                    respontArea.style.color = "orange";
+                } else if (userPoint.x === target.x && userPoint.y === target.y) {
+                    respontArea.innerHTML = "Mat eo !";
+                } else {
+                    respontArea.innerHTML = "N'eo ket! Sell ouzh ar poent gwer.";
+                }
+            } else if (currentMode === "lenn") {
+                // Pour le mode lecture, la réponse est souvent un input texte dans le HTML
+                // Ici on affiche juste la solution si besoin
+                respontArea.innerHTML = `\\( (${target.x} ; ${target.y}) \\)`;
+            }
+
+            respontArea.style.display = "block";
+            drawRepere();
+            embannLatex();
+        }
+
+        /**
+         * Gestion du clic sur le canvas
+         */
+        canvas.onclick = function (e) {
+            // Le clic ne sert qu'au mode "placement"
+            if (currentMode !== "lechiañ" || isValidated) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+
+            let m = toMath(px, py);
+            const snapX = Math.round(m.x);
+            const snapY = Math.round(m.y);
+
+            if (userPoint && userPoint.x === snapX && userPoint.y === snapY) {
+                userPoint = null;
+            } else {
+                userPoint = { x: snapX, y: snapY };
+            }
+
+            drawRepere();
+        };
+
+        function dibabJedad() {
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a jedadenn";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+            const n = randomFromInterval(0, 1);
+
+            switch (dibab) {
+                case "1":
+                    lennKenurzhienn();
+                    break;
+                case "2":
+                    lechiañPoent(n);
+                    break;
+            }
+        }
+
+        dibabJedad();
+    </script>
+
+</body>
+
+</html>

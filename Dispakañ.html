@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Dispakañ</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Dispakañ simpl 1
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Dispakañ simpl 2
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Dispakañ doubl
+                </label>
+            </form>
+
+            <div class="number" id="jedad"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabDispak()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        // -------------------- Developments -----------------------------
+
+        function generateAndDisplayDispakSimpl(a, b, c, gantX) {
+
+            const ab = a * b;
+            const ac = a * c;
+            const abs_c = Math.abs(c);
+            const aAbsC = a * abs_c;
+
+            // Helper functions
+            const parena = (n, x) =>
+                n < 0
+                    ? (x === 0 ? `(${n})` : `(${n}x)`)
+                    : (x === 0 ? `${n}` : `${n}x`);
+            const parenb = (n) =>
+                (n < 0 || n === '-')
+                    ? `(${n}x)`
+                    : `${n}x`;
+
+            const signed = (n) => (n < 0 ? `- ${Math.abs(n)}` : `+ ${n}`);
+
+            const kenef = (n) =>
+                (n === 1 || n === -1)
+                    ? (n === 1 ? `` : `-`)
+                    : `${n}`;
+
+            const times = '\\times';
+
+            const x = (gantX === 0 ? `` : `x`);
+            const xx = (gantX === 0 ? `x` : `x^2`);
+
+            let latex = '';
+            result = '';
+
+            // Stumm mod-keal
+            const affixe = gantX === 0
+                ? `${kenef(a)} (${kenef(b)}x ${signed(c)})`
+                : `${kenef(a)}x (${kenef(b)}x ${signed(c)})`;
+
+            latex = `\\( ${affixe} \\)`;
+
+            firstLine = `&${kenef(a)}${x} ${times} ${parenb(kenef(b))} ${c < 0 ? '- ' : '+ '} ${parena(kenef(a), gantX)} ${times} ${abs_c}`;
+            secondLine = `&${kenef(ab)}${xx} ${c < 0 ? '- ' : '+ '} ${parena(a * abs_c, gantX)}`;
+            thirdLine = (a < 0) ? `&${kenef(ab)}${xx} ${c > 0 ? signed(a * abs_c) : signed(ac)}${x}` : '';
+
+            result = `\\[
+        \\begin{aligned}
+        ${firstLine} \\\\
+        ${secondLine}
+        ${thirdLine ? ` \\\\\n${thirdLine}` : ''}
+        \\end{aligned}
+    \\]`;
+
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex(); // Goulenn evit MathJax.typeset()
+        }
+
+        function generateAndDisplayDispakDoubl(a, b, c, d) {
+
+            const ac = a * c;
+            const ad = a * d;
+            const bc = b * c;
+            const bd = b * d;
+            const somm = ad + bc;
+            const abs_c = Math.abs(c);
+            const abs_d = Math.abs(d);
+            const aAbsC = a * abs_c;
+
+            // Helper functions
+            const parena = (n) =>
+                (n < 0 || n === '-')
+                    ? `(${n})`
+                    : `${n}`;
+
+            const parenb = (n) =>
+                (n < 0 || n === '-')
+                    ? `(${n}x)`
+                    : `${n}x`;
+
+            const signed = (n) => (n < 0 ? `- ${Math.abs(n)}` : `+ ${n}`);
+
+            const kenef = (n) =>
+                (n === 1 || n === -1)
+                    ? (n === 1 ? `` : `-`)
+                    : `${n}`;
+
+            const times = '\\times';
+
+            let latex = '';
+            result = '';
+
+            // Stumm mod-keal
+            const affixe = `(${kenef(a)}x ${signed(b)}) (${kenef(c)}x ${signed(d)})`;
+
+            latex = `\\( ${affixe} \\)`;
+
+            let firstLine = `&
+                    ${kenef(a)}x ${times} ${parenb(kenef(c))} +
+                    ${parenb(kenef(a))} ${times} ${parena(d)} +
+                    ${parena(b)} ${times} ${parenb(kenef(c))} +
+                    ${parena(b)} ${times} ${parena(d)}
+                `;
+
+            let secondLine = `&
+                    ${kenef(ac)}x^2 +
+                    ${parenb(kenef(ad))} +
+                    ${parenb(kenef(bc))} + 
+                    ${parena(bd)}
+                `;
+
+            thirdLine = `&
+                    ${kenef(ac)}x^2 +
+                    ${parenb(kenef(somm))} + 
+                    ${parena(bd)}
+                `;
+
+            fourthLine = (somm < 0 || bd < 0
+                ? `&
+            ${kenef(ac)}x^2
+            ${signed(kenef(somm))}x
+            ${signed(bd)}
+            `
+                : '');
+
+            result = `\\[
+        \\begin{aligned}
+        ${firstLine} \\\\
+        ${secondLine} \\\\
+        ${thirdLine} \\\\
+        ${fourthLine}
+        \\end{aligned}
+    \\]`;
+
+            /*result = `\\[
+                \\begin{aligned}
+                ${firstLine} \\\\
+                ${secondLine}
+                ${thirdLine ? ` \\\\\n${thirdLine}` : ''}
+                \\end{aligned}
+            \\]`;*/
+
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex(); // Goulenn evit MathJax.typeset()
+        }
+
+        function dibabDispak() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a live";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            let a, b, c, d, x;
+
+
+            switch (dibab) {
+                case "1": {
+                    let a, b, c, x;
+                    do {
+                        a = randomFromInterval(1, 12);
+                        x = randomFromInterval(0, 1);
+                    } while (x === 0 && a === 1);
+                    b = randomFromInterval(1, 12);
+                    do { c = randomFromInterval(-12, 12); } while (c === 0);
+                    generateAndDisplayDispakSimpl(a, b, c, x);
+                    break;
+                }
+
+                case "2": {
+                    let a, b, c, x;
+                    do {
+                        a = randomFromInterval(-12, 12);
+                    } while (a === 0 || a === 1 || a === -1);
+                    do { b = randomFromInterval(-12, 12); } while (b === 0);
+                    do { c = randomFromInterval(-12, 12); } while (c === 0);
+                    x = randomFromInterval(0, 1);
+                    generateAndDisplayDispakSimpl(a, b, c, x);
+                    break;
+                }
+
+                case "3": {
+                    const pick = () => {
+                        let n;
+                        do { n = randomFromInterval(-12, 12); } while (n === 0);
+                        return n;
+                    };
+                    const a = pick(), b = pick(), c = pick(), d = pick();
+                    generateAndDisplayDispakDoubl(a, b, c, d);
+                    break;
+                }
+            }
+
+        }
+
+        dibabDispak();
+
+
+    </script>
+
+</body>
+
+</html>

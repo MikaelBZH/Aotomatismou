@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Kevatalennoù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    x + a = b
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    ax = b
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    ax + b = c
+                </label>
+            </form>
+            <div class="number" id="jedadContainer" style="position: relative;">
+                <div id="jedad"></div>
+                <button id="helpBtn" class="help-button">?</button>
+            </div>
+            <div id="helpContainer" style="margin: 20px auto; text-align: left; display: none; white-space: nowrap;">
+            </div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabKevatalenn()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+        function generateAndDisplayKevatalenn(choice, a, b, c) {
+
+            const helpButton = document.getElementById("helpBtn");
+
+            const signedEnep = (n) =>
+                (n > 0) ? `- ${Math.abs(n)}` : `+ ${Math.abs(n)}`;
+            const signedNum = (n) =>
+                (n < 0) ? `- ${Math.abs(n)}` : `+ ${Math.abs(n)}`;
+            const kenef = (n) =>
+                (n === 1 || n === -1)
+                    ? (n === 1 ? `` : `-`)
+                    : `${n}`;
+
+            switch (choice) {
+                case 1:
+                    latex = `\\( Diskoulma\\tilde{n} \\: x ${signedNum(b)} = ${c} \\)`;
+                    respont = c - b;
+                    result = `\\[
+                                \\begin{aligned}
+                                x ${signedNum(b)} ${signedEnep(b)} &= ${c} ${signedEnep(b)} \\\\
+                                x &= ${respont}
+                                \\end{aligned}
+                            \\]`;
+                    break;
+                case 2:
+                    if (a === -1) {
+                        helpButton.style.display = "inline-block";
+                        helpButton.onclick = () => toogleKevatalennHelp();
+                    }
+                    latex = `\\( Diskoulma\\tilde{n} \\:  ${kenef(a)} x = ${c} \\)`;
+                    formattedDecimalRespont = new Intl.NumberFormat('fr-FR').format(c / a);
+                    respont = (isDecimal(c, a, 3) && a !== -1) ? ` (= ${formattedDecimalRespont})` : ``;
+                    brb = BRB(Math.abs(a), Math.abs(c));
+                    simpledAbsFrac = (a === -1) ? `${Math.abs(c)}` : `\\frac{${Math.abs(c) / brb} } {${Math.abs(a) / brb} } `;
+                    result = `\\[
+                        \\begin{aligned}
+                        \\frac{ ${kenef(a)} x}{${a} } &= \\frac{${c} } {${a} } \\\\
+                        x &= ${(c / a < 0) ? `- ${simpledAbsFrac}` : `${simpledAbsFrac}`} ${respont}
+                        \\end{aligned}
+                                \\]`;
+                    break;
+                case 3:
+                    if (a === -1) {
+                        helpButton.style.display = "inline-block";
+                        helpButton.onclick = () => toogleKevatalennHelp();
+                    }
+                    latex = `\\( Diskoulma\\tilde{n} \\: ${kenef(a)} x ${signedNum(b)} = ${c} \\)`;
+                    let d = c - b;
+                    formattedDecimalRespont = new Intl.NumberFormat('fr-FR').format(d / a);
+                    respont = (isDecimal(d, a, 3) && a !== -1) ? ` (= ${formattedDecimalRespont})` : ``;
+                    brb = BRB(Math.abs(a), Math.abs(d));
+                    simpledAbsFrac = (a === -1) ? `${Math.abs(d)}` : `\\frac{${Math.abs(d) / brb} } {${Math.abs(a) / brb} } `;
+                    result = `\\[
+                        \\begin{aligned}
+                        ${kenef(a)} x ${signedNum(b)} ${signedEnep(b)} &= ${c} ${signedEnep(b)} \\\\
+                        ${kenef(a)} x &= ${d} \\\\
+                        \\frac{ ${kenef(a)} x}{${a} } &= \\frac{${d} } {${a} } \\\\
+                        x &= ${(c / a < 0) ? `- ${simpledAbsFrac}` : `${simpledAbsFrac}`} ${respont}
+                        \\end{aligned}
+                                \\]`;
+                    break;
+            }
+
+            document.getElementById('jedad').innerHTML = latex;
+
+            embannLatex();
+        }
+
+        function displayKevatalennHelp() {
+            const container = document.getElementById("helpContainer");
+
+            container.innerHTML = ""; // clear old
+
+            container.innerHTML = `\\( -x \\text{ zo kevatal da } -1x \\)`;
+
+            embannLatex();
+        }
+
+        function toogleKevatalennHelp() {
+            const container = document.getElementById("helpContainer");
+            const nowHidden = container.style.display === "none" || !container.style.display;
+
+            if (nowHidden) {
+                container.style.display = "block";
+                displayKevatalennHelp();
+            } else {
+                container.style.display = "none";
+                container.innerHTML = ""; // Optional: clear when hidden
+            }
+        }
+
+        function dibabKevatalenn() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            const helpButton = document.getElementById("helpBtn");
+            helpButton.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a live";
+                document.getElementById("respontBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            let a, b, c;
+            do { a = randomFromInterval(-12, 12) } while (a === 0 || a === 1);
+            do { b = randomFromInterval(-12, 12) } while (b === 0);
+            c = randomFromInterval(-12, 12);
+
+
+            switch (dibab) {
+                case "1": {
+                    generateAndDisplayKevatalenn(1, a, b, c);
+                    break;
+                }
+
+                case "2": {
+                    generateAndDisplayKevatalenn(2, a, b, c);
+                    break;
+                }
+
+                case "3": {
+                    generateAndDisplayKevatalenn(3, a, b, c);
+                    break;
+                }
+            }
+
+        }
+
+        dibabKevatalenn();
+
+
+    </script>
+
+</body>
+
+</html>

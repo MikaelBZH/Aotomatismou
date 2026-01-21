@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Galloudoù</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+
+        <div class="container">
+            <div class="number" id="jedad"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="galloud()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        // ------------------- Calculate with powers ------------------------
+
+        function galloud() {
+
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            let gal = randomFromInterval(2, 12);
+            let exp1 = randomFromInterval(-12, 12);
+            let exp2 = randomFromInterval(-12, 12);
+            let dib = randomFromInterval(1, 4);
+
+            const paren = (n) => (n < 0 ? `(${n})` : `${n}`);
+
+            switch (dib) {
+                case 1:
+                    goulenn = `\\[
+                    \\begin{aligned}
+                    & \\text{Jed ha kinnig an disoc'h gant ur galloud.} \\\\
+                    & ${gal}^{${exp1}} \\times ${gal}^{${exp2}}
+                    \\end{aligned}
+                    \\]`;
+                    exp = exp1 + exp2;
+                    if (exp === 0) { eilResult = 1; }
+                    if (exp === 1) { eilResult = gal; }
+                    result = `\\( ${gal}^{${exp1} + ${paren(exp2)}} = ${gal}^{${exp}} ${exp === 0 || exp === 1 ? `=${eilResult}` : ``}\\)`;
+                    break;
+                case 2:
+                    goulenn = `\\[
+                    \\begin{aligned}
+                    & \\text{Jed ha kinnig an disoc'h gant ur galloud.} \\\\
+                    & \\frac{${gal}^{${exp1}}}{${gal}^{${exp2}}}
+                    \\end{aligned}
+                    \\]`;
+                    exp = exp1 - exp2;
+                    if (exp === 0) { eilResult = 1; }
+                    if (exp === 1) { eilResult = gal; }
+                    result = `\\( ${gal}^{${exp1} - ${paren(exp2)}} = ${gal}^{${exp1 - exp2}} ${exp === 0 || exp === 1 ? `=${eilResult}` : ``}\\)`;
+                    break;
+                case 3:
+                    goulenn = `\\[
+                    \\begin{aligned}
+                    & \\text{Jed ha kinnig an disoc'h gant ur galloud.} \\\\
+                    & \\left( ${gal}^{${exp1}} \\right)^{${exp2}}
+                    \\end{aligned}
+                    \\]`;
+                    exp = exp1 * exp2;
+                    if (exp === 0) { eilResult = 1; }
+                    if (exp === 1) { eilResult = gal; }
+                    result = `\\( ${gal}^{${exp1} \\times ${paren(exp2)}} = ${gal}^{${exp1 * exp2}} ${exp === 0 || exp === 1 ? `=${eilResult}` : ``}\\)`;
+                    break;
+                case 4:
+                    let exp3 = randomFromInterval(2, 4);
+                    let kevr = kevrenn(6, 12);
+                    let niv = kevr[0];
+                    let anv = kevr[1];
+                    goulenn = `\\[
+                    \\begin{aligned}
+                    & \\text{Jed ha kinnig an disoc'h gant ur gevrenn.} \\\\
+                    & \\left( \\frac{${niv}}{${anv}} \\right)^{${exp3}}
+                    \\end{aligned}
+                    \\]`;
+                    result = `\\( \\frac{${niv}^{${exp3}}}{${anv}^{${exp3}}} \\)`;
+                    break;
+            }
+
+            document.getElementById('jedad').innerHTML = goulenn;
+
+            embannLatex(); // Goulenn evit MathJax.typeset()
+
+        }
+
+        galloud();
+    </script>
+
+</body>
+
+</html>

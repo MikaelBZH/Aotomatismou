@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Daveañ war un eeunenn dereziet</title>
+    <!--<script src="https://cdn.tailwindcss.com"></script>-->
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+    <style>
+        canvas {
+            touch-action: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-panel {
+            background: rgb(176, 33, 33);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .hidden-panel {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Lenn kenurzhiennoù
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Daveañ ur poent
+                </label>
+            </form>
+            <div class="number" id="jedad"></div>
+            <canvas id="graduatedLine"
+                style="width: 100%; max-width: 800px; height: 200px; border:1px solid #ccc; cursor:pointer;"></canvas>
+            <div>
+                <button class="button" onclick="diskouezRespontDaveañ()" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/graph_functions.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+
+    <script>
+        const canvas = document.getElementById('graduatedLine');
+        const { ctx, width: w, height: h } = setupUniversalHiDPI(canvas);
+        const respontBtn = document.getElementById("respontBtn");
+        const instructionText = document.getElementById('jedad');
+        const respontArea = document.getElementById('respontArea');
+        //const placeArea = document.getElementById('placeArea');
+
+        // État de l'application
+        let config = {
+            start: 0,
+            subdivisions: 10,
+            range: 5,
+            mode: 'read',
+            targetValue: null,
+            currentSelection: null,
+            solutionRevealed: false
+        };
+
+        const PADDING_X = 60;
+        const LINE_Y = 100;
+
+        canvas.addEventListener('mousedown', handleInteraction);
+
+        /**
+         * @param {boolean} randomizeParams Si vrai, change l'origine et la subdivision
+         */
+        function newChallenge(randomizeParams = true) {
+            respontArea.classList.add('hidden');
+            config.currentSelection = null;
+            config.solutionRevealed = false;
+
+            if (randomizeParams) {
+                // 1. Choix aléatoire de l'origine (entre -10 et 50)
+                config.start = Math.floor(Math.random() * 61) - 10;
+
+                // 2. Choix aléatoire de la subdivision
+                const possibleSubdivs = [2, 4, 5, 10];
+                config.subdivisions = possibleSubdivs[Math.floor(Math.random() * possibleSubdivs.length)];
+            }
+
+            // 3. Choix de la cible
+            const step = 1 / config.subdivisions;
+            // On s'assure que le point n'est pas pile sur l'origine (offset min de 1 step) pour que ce soit un défi
+            const offset = (Math.floor(Math.random() * (config.range * config.subdivisions)) + 1) * step;
+            config.targetValue = parseFloat((config.start + offset).toFixed(2));
+
+            if (config.mode === 'place') {
+                instructionText.textContent = `\\( \\text{Lec'hiañ ar poent} (${config.targetValue.toString().replace('.', ',')}) \\text{ e absisenn.} \\)`;
+            } else {
+                instructionText.textContent = `\\( \\text{Petra eo absisenn ar poent A ?} \\)`;
+            }
+            draw();
+            embannLatex();
+        }
+
+        function handleInteraction(e) {
+            if (config.mode === 'read' || config.solutionRevealed) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const usableWidth = rect.width - (PADDING_X * 2);
+            const valPerPx = config.range / usableWidth;
+            let val = config.start + (mouseX - PADDING_X) * valPerPx;
+
+            const step = 1 / config.subdivisions;
+            val = Math.round(val / step) * step;
+
+            if (val < config.start) val = config.start;
+            if (val > config.start + config.range) val = config.start + config.range;
+
+            config.currentSelection = parseFloat(val.toFixed(2));
+            respontBtn.style.display = 'inline';
+            draw();
+        }
+
+        /**
+         * Validation globale (bouton Respont)
+         */
+        function diskouezRespontDaveañ() {
+            const respontArea = document.getElementById("respontArea");
+            if (!respontArea) return;
+
+            config.solutionRevealed = true;
+
+            if (config.mode === "place") {
+                /*if (!config.currentSelection) {
+                    respontArea.innerHTML = "Lec'hiañ ur poent da gentañ !";
+                    respontArea.style.color = "orange";
+                } else*/ if (Math.abs(config.currentSelection - config.targetValue) < 0.001) {
+                    respontArea.innerHTML = `\\( \\text{Mat eo !} \\)`;
+                } else {
+                    respontArea.innerHTML = `\\( \\text{N'eo ket! Sell ouzh ar poent gwer.} \\)`;
+                }
+            } else if (config.mode === "read") {
+                // Pour le mode lecture, la réponse est souvent un input texte dans le HTML
+                // Ici on affiche juste la solution si besoin
+                respontArea.innerHTML = `\\( (${config.targetValue.toString().replace('.', ',')}) \\)`;
+            }
+
+            respontArea.style.display = "block";
+            draw();
+            embannLatex();
+        }
+
+        function draw() {
+
+            const usableWidth = w - (PADDING_X * 2);
+            const pxPerUnit = usableWidth / config.range;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Axe
+            ctx.beginPath();
+            ctx.moveTo(PADDING_X - 20, LINE_Y);
+            ctx.lineTo(w - PADDING_X + 40, LINE_Y);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Flèche
+            ctx.beginPath();
+            ctx.moveTo(w - PADDING_X + 40, LINE_Y);
+            ctx.lineTo(w - PADDING_X + 30, LINE_Y - 8);
+            ctx.lineTo(w - PADDING_X + 30, LINE_Y + 8);
+            ctx.closePath();
+            ctx.fillStyle = '#334155';
+            ctx.fill();
+
+            // 2. Graduations
+            const step = 1 / config.subdivisions;
+            for (let v = config.start; v <= config.start + config.range + 0.001; v = parseFloat((v + step).toFixed(2))) {
+                const x = PADDING_X + (v - config.start) * pxPerUnit;
+                const isMain = Math.abs(v % 1) < 0.001;
+
+                ctx.beginPath();
+                ctx.moveTo(x, LINE_Y - (isMain ? 15 : 8));
+                ctx.lineTo(x, LINE_Y + (isMain ? 15 : 8));
+                ctx.strokeStyle = isMain ? '#1e293b' : '#94a3b8';
+                ctx.lineWidth = isMain ? 2 : 1;
+                ctx.stroke();
+
+                if (isMain) {
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.fillStyle = '#1e293b';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(v.toString(), x, LINE_Y + 35);
+                }
+            }
+
+            // 3. Dessiner la CIBLE (Point A ou Point Vert Solution)
+            if (config.targetValue !== null) {
+                const targetX = PADDING_X + (config.targetValue - config.start) * pxPerUnit;
+
+                if (config.mode === 'read') {
+                    ctx.beginPath();
+                    ctx.arc(targetX, LINE_Y, 7, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.font = 'bold 18px sans-serif';
+                    ctx.fillStyle = "#ef4444";
+                    ctx.fillText("A", targetX, LINE_Y - 30);
+
+                    if (config.solutionRevealed) {
+                        ctx.font = 'bold 14px sans-serif';
+                        ctx.fillStyle = '#334155';
+                        ctx.fillText(`(${config.targetValue.toString().replace('.', ',')})`, targetX, LINE_Y - 15);
+                    }
+                }
+                else if (config.mode === 'place' && config.solutionRevealed) {
+                    ctx.beginPath();
+                    ctx.arc(targetX, LINE_Y, 7, 0, Math.PI * 2);
+                    ctx.fillStyle = '#10b981';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.fillStyle = '#059669';
+                    ctx.fillText(`Diskoulm : ${config.targetValue.toString().replace('.', ',')}`, targetX, LINE_Y - 15);
+                }
+            }
+
+            // 4. Dessiner la sélection de l'élève (Rouge)
+            if (config.mode === 'place' && config.currentSelection !== null) {
+                const selX = PADDING_X + (config.currentSelection - config.start) * pxPerUnit;
+                ctx.beginPath();
+                ctx.arc(selX, LINE_Y, 7, 0, Math.PI * 2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                if (config.solutionRevealed) {
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.fillStyle = '#1d4ed8';
+                    ctx.fillText(`Da boent : ${config.currentSelection.toString().replace('.', ',')}`, selX, LINE_Y + 55);
+                }
+            }
+        }
+
+        function dibabJedad() {
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            respontArea.style.display = 'none';
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a jedadenn";
+                respontBtn.style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            switch (dibab) {
+                case "1":
+                    config.mode = 'read';
+                    respontBtn.style.display = 'inline';
+                    break;
+                case "2":
+                    config.mode = 'place';
+                    respontBtn.style.display = 'none';
+                    break;
+            }
+            newChallenge();
+
+        }
+
+        dibabJedad();
+
+    </script>
+</body>
+
+</html>

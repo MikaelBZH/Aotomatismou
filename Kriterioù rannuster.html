@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <title>Kriterioù rannuster</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <div class="number" id="randomNumber"></div>
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="generateAndDisplayKriter()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+        function generateAndDisplayKriter() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+
+            let niver = randomFromInterval(12, 10000);
+            let niverStr = niver.toString();
+            let digits = [...niverStr];
+            let numDigits = digits.length;
+
+            let rannerien = [2, 3, 4, 5, 9, 10];
+            let db = randomFromInterval(0, rannerien.length - 1);
+            let ranner = rannerien[db];
+
+            let lastDigit = Number(digits[numDigits - 1]);
+            let penultimateDigit = Number(digits[numDigits - 2]);
+
+            let latex = `\\( \\text{Ha rannus eo } ${niver} \\text{ dre } ${ranner} \\text{ ?} \\)`;
+
+            switch (ranner) {
+                case 2:
+                    const par = [0, 2, 4, 6, 8];
+                    if (par.includes(lastDigit)) {
+                        result = `\\[ \\begin{aligned}
+                        & ${niver} \\text{ a echu gant 0, 2, 4, 6 pe 8,} \\\\
+                        & \\text{neuze eo rannus dre 2 (par eo).}
+                        \\end{aligned} \\]`;
+                    } else {
+                        result = `\\[ \\begin{aligned}
+                        & ${niver} \\text{ ne echu ket gant 0, 2, 4, 6 nag 8,} \\\\
+                        & \\text{neuze n'eo ket rannus dre 2 (ampar eo).}
+                        \\end{aligned} \\]`;
+                    }
+                    break;
+                case 3:
+                    const somm = digits.reduce((acc, d) => acc + Number(d), 0);
+                    result = `\\[ \\begin{aligned} &`;
+                    for (let i = 0; i < numDigits - 1; i++) {
+                        result += `${digits[i]} + `;
+                    }
+                    result += `${digits[numDigits - 1]} = ${somm} \\\\`;
+                    if (somm % 3 === 0) {
+                        result += `& ${somm} \\text{ a zo rannus dre 3 neuze } ${niver} \\text{ ivez.}
+                        \\end{aligned} \\]`;
+                    } else {
+                        result += `& ${somm} \\text{ n'eo ket rannus dre 3 neuze } ${niver} \\text{ kenebeut.}
+                        \\end{aligned} \\]`;
+                    }
+                    break;
+                case 4:
+                    const fin = penultimateDigit * 10 + lastDigit;
+                    if (fin % 4 === 0) {
+                        result = `\\[ \\begin{aligned}
+                        & \\text{An niver } ${fin} \\text{ savet gant an daou sifr diwezhañ zo rannus dre 4,} \\\\
+                        & \\text{neuze eo } ${niver} \\text{ rannus dre 4 ivez.}
+                        \\end{aligned} \\]`;
+                    } else {
+                        result = `\\[ \\begin{aligned}
+                        & \\text{An niver } ${fin} \\text{ savet gant an daou sifr diwezhañ n'eo ket rannus dre 4,} \\\\
+                        & \\text{neuze n'eo ket } ${niver} \\text{ rannus dre 4 kenebeut.}
+                        \\end{aligned} \\]`;
+                    }
+                    break;
+                case 5:
+                    const diw = [0, 5];
+                    if (diw.includes(lastDigit)) {
+                        result = `\\[ \\begin{aligned}
+                        & ${niver} \\text{ a echu gant 0 pe 5,} \\\\
+                        & \\text{neuze eo rannus dre 5.}
+                        \\end{aligned} \\]`;
+                    } else {
+                        result = `\\[ \\begin{aligned}
+                        & ${niver} \\text{ ne echu ket gant 0 na 5,} \\\\
+                        & \\text{neuze n'eo ket rannus dre 5.}
+                        \\end{aligned} \\]`;
+                    }
+                    break;
+                case 9:
+                    const sommNav = digits.reduce((acc, d) => acc + Number(d), 0);
+                    result = `\\[ \\begin{aligned} &`;
+                    for (let i = 0; i < numDigits - 1; i++) {
+                        result += `${digits[i]} + `;
+                    }
+                    result += `${digits[numDigits - 1]} = ${sommNav} \\\\`;
+                    if (sommNav % 9 === 0) {
+                        result += `& ${sommNav} \\text{ a zo rannus dre 9 neuze } ${niver} \\text{ ivez.}
+                        \\end{aligned} \\]`;
+                    } else {
+                        result += `& ${sommNav} \\text{ n'eo ket rannus dre 9 neuze } ${niver} \\text{ kenebeut.}
+                        \\end{aligned} \\]`;
+                    }
+                    break;
+                case 10:
+                    if (lastDigit === 0) {
+                        result = `\\[ \\begin{aligned}
+                        & ${niver} \\text{ a echu gant 0,} \\\\
+                        & \\text{neuze eo rannus dre 10.}
+                        \\end{aligned} \\]`;
+                    } else {
+                        result = `\\[ \\begin{aligned}
+                        & ${niver} \\text{ ne echu ket gant 0,} \\\\
+                        & \\text{neuze n'eo ket rannus dre 10.}
+                        \\end{aligned} \\]`;
+                    }
+                    break;
+            }
+
+
+
+            document.getElementById('randomNumber').innerHTML = latex;
+            //document.getElementById('respontArea').style.display = "inline-block";
+
+            embannLatex();
+        }
+
+        generateAndDisplayKriter();
+    </script>
+
+</body>
+
+</html>

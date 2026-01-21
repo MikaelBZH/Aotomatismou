@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+    <title>Skrivad skiantel</title>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+    <div id="menu-container"></div>
+
+    <div id="content" class="main">
+        <div class="container">
+            <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="1" checked>
+                    <span class="custom-checkbox"></span>
+                    Diwar un niver degel
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="2" checked>
+                    <span class="custom-checkbox"></span>
+                    Diwar un niver gant ur galloud eus 10
+                </label>
+                <!--<label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Volumoù hep litr
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="4" checked>
+                    <span class="custom-checkbox"></span>
+                    Volumoù gant litr
+                </label>-->
+            </form>
+            <!--<div class="number" id="jedad"></div>-->
+            <div class="number" id="jedadContainer" style="position: relative;">
+                <div id="jedad"></div>
+                <button id="helpBtn" class="help-button">?</button>
+            </div>
+            <div id="helpContainer" style="margin: 20px auto; text-align: left; display: none; white-space: nowrap;">
+            </div>
+
+            <div>
+                <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+                <button class="button" onclick="dibabJedad()">Nevez</button>
+            </div>
+            <div class="result" id="respontArea"></div>
+        </div>
+    </div>
+
+    <script src="js/menu.js"></script>
+    <script src="js/math_functions.js"></script>
+    <script src="js/analysis_functions.js"></script>
+    <script>
+
+        // -------------------------- Scientific Notation ------------------------------
+
+        let result = "";
+
+        /**
+         * Generates a random mantissa (1 <= m < 10) with three decimal places, using dot as separator internally.
+         */
+        function randomMantissaString() {
+            const intPart = Math.floor(Math.random() * 9) + 1; // 1–9
+            const dec1 = Math.floor(Math.random() * 10);
+            const dec2 = Math.floor(Math.random() * 10);
+            const dec3 = Math.floor(Math.random() * 10);
+
+            return `${intPart}.${dec1}${dec2}${dec3}`;
+        }
+
+        /**
+         * Generates a "wrong" mantissa (either < 1 or >= 10).
+         * Uses comma (,) as the decimal separator.
+         */
+        function randomWeirdMantissa() {
+            // Decide randomly: too small or too big
+            if (Math.random() < 0.5) {
+                // Too large: Random mantissa between 10 and 999 with up to 3 decimals
+                let base = Math.floor(Math.random() * 990) + 10; // Between 10–999
+                let d1 = Math.floor(Math.random() * 10);
+                let d2 = Math.floor(Math.random() * 10);
+                let d3 = Math.floor(Math.random() * 10);
+                return `${base},${d1}${d2}${d3}`;
+            } else {
+                // Too small: Mantissa between 0.001 and 0.0999. First non-zero digit is d2.
+                let d1 = 0; // The first decimal is 0
+                let d2 = Math.floor(Math.random() * 9) + 1; // First non-zero digit
+                let d3 = Math.floor(Math.random() * 10);
+                let d4 = Math.floor(Math.random() * 10);
+                return `0,${d1}${d2}${d3}${d4}`;
+            }
+        }
+
+        /**
+         * Applies the exponent shift to convert the mantissa into its decimal form string.
+         * The resulting string uses a COMMA (,) as the decimal separator for display.
+         * @param {string} mantissaStr - The mantissa string (e.g., "1.234" or "0,0123")
+         * @param {number} exp - The exponent
+         * @returns {string} The resulting decimal number string with comma separator.
+         */
+        function applyExponent(mantissaStr, exp) {
+            // Internal calculation must use the dot.
+            // Replace comma with dot temporarily for internal processing consistency.
+            let tempMantissa = mantissaStr.replace(",", ".");
+
+            let [intPart, decPart = ""] = tempMantissa.split(".");
+            let digits = intPart + decPart;
+
+            // A more robust way: calculate the full number string and insert the comma
+            // We use parseFloat here, which requires the dot separator.
+            let fullDecimal = parseFloat(tempMantissa) * Math.pow(10, exp);
+
+            // Handle very large/small numbers that JS converts to scientific automatically, 
+            // falling back to string manipulation for precision and formatting.
+            if (Math.abs(fullDecimal) < 1e-6 || Math.abs(fullDecimal) > 1e20) {
+                // Fallback to simpler string logic for extreme exponents
+                let digitsStr = intPart + decPart;
+                let finalPos = intPart.length + exp;
+                let outputStr;
+
+                if (finalPos <= 0) {
+                    // Example: 1.234 x 10^-5 -> 0,00001234
+                    outputStr = "0," + "0".repeat(-finalPos) + digitsStr;
+                } else if (finalPos >= digitsStr.length) {
+                    // Example: 1.234 x 10^5 -> 123400
+                    outputStr = digitsStr + "0".repeat(finalPos - digitsStr.length);
+                } else {
+                    // Example: 1.234 x 10^1 -> 12,34
+                    outputStr = digitsStr.slice(0, finalPos) + "," + digitsStr.slice(finalPos);
+                }
+
+                // Clean up leading/trailing junk
+                outputStr = outputStr.replace(/^0+([1-9])/, '$1'); // Remove redundant leading zeros (e.g., 001,23 -> 1,23)
+                outputStr = outputStr.replace(/,0+$/, ''); // Remove trailing decimal zeros (e.g., 12,30 -> 12,3)
+                if (outputStr.startsWith(',')) outputStr = '0' + outputStr;
+                return outputStr;
+
+            } else {
+                // Use built-in JS toFixed for standard numbers and replace dot with comma
+                // Dynamic precision based on exponent to show correct number of significant figures
+                let fullDecimalStr = fullDecimal.toFixed(Math.max(0, 4 - exp));
+                // Now replace the internal JS dot with a comma for display
+                return fullDecimalStr.replace('.', ',');
+            }
+        }
+
+        /**
+         * Converts scientific notation to a string, replacing the internal dot with a comma for display.
+         * Uses LaTeX syntax for the exponent.
+         * @param {string} mantissaStr - The mantissa string (internal dot separator)
+         * @param {number} exp - The exponent
+         * @returns {string} LaTeX string for the scientific notation.
+         */
+        function toScientific(mantissaStr, exp) {
+            // Replace dot separator with comma for display
+            const displayMantissa = mantissaStr.replace(".", ",");
+            return `${displayMantissa} \\times 10^{${exp}}`;
+        }
+
+        /**
+         * Formats a decimal number string (which uses comma as the decimal separator) 
+         * with LaTeX thin spaces (\,) for thousands separators.
+         * @param {string} numStr - Decimal number string with comma separator (e.g., "12345,67")
+         * @returns {string} LaTeX formatted string.
+         */
+        function formatThousandsLatex(numStr) {
+            // Ensure the input uses comma as the decimal separator (as generated by applyExponent)
+            let [intPart, decPart] = numStr.split(",");
+
+            let sign = "";
+            if (intPart.startsWith("-")) {
+                sign = "-";
+                intPart = intPart.slice(1);
+            }
+
+            // Remove redundant leading zeros from integer part unless it's just "0"
+            if (intPart.length > 1 && intPart.startsWith("0")) {
+                intPart = intPart.replace(/^0+/, '');
+            }
+
+            // Insert LaTeX thin spaces (\,) for thousands separator
+            intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, "\\,");
+
+            // Recombine with comma as decimal separator
+            if (decPart && decPart.length > 0) {
+                // Omit decimal part if it's only zeros
+                if (decPart.match(/^[0]*$/)) {
+                    return `${sign}${intPart}`;
+                }
+                return `${sign}${intPart},${decPart}`;
+            } else {
+                return `${sign}${intPart}`;
+            }
+        }
+
+        function decimalToLatex(numStr) {
+            let withSpaces = formatThousandsLatex(numStr);
+            return `${withSpaces}`;
+        }
+
+        /**
+         * Normalizes a non-standard scientific notation to standard form (1 <= |m| < 10).
+         * @param {string} mantissaStr - The non-standard mantissa (uses comma)
+         * @param {number} exp - The original exponent
+         * @returns {{mantissa: string, exp: number}} Object with the normalized mantissa (uses dot internally) and new exponent.
+         */
+        function normalizeScientific(mantissaStr, exp) {
+            // 1. Prepare: Convert comma (user input) to dot (JS standard) for internal calculation
+            let tempMantissa = mantissaStr.replace(",", ".");
+
+            let sign = "";
+            if (tempMantissa.startsWith("-")) {
+                sign = "-";
+                tempMantissa = tempMantissa.slice(1);
+            }
+
+            // Split integer/decimal (use dot as separator)
+            let [intPart, decPart = ""] = tempMantissa.split(".");
+            let digits = (intPart + decPart).replace(/^0+/, ''); // Get non-zero digits only
+
+            // Edge case: if digits is empty (input was 0,000...)
+            if (digits.length === 0) {
+                return { mantissa: "0.0", exp: 0 };
+            }
+
+            // Calculate the current value represented by the mantissa string
+            const value = parseFloat(tempMantissa);
+
+            // Case 1: mantissa >= 10 (e.g., 12.34)
+            if (value >= 10) {
+                // Number of places to shift the decimal left
+                const shift = intPart.length - 1;
+
+                // New mantissa is first digit, dot, rest of digits
+                const newMantissa = digits[0] + "." + digits.slice(1);
+
+                return {
+                    mantissa: sign + newMantissa,
+                    exp: exp + shift
+                };
+            }
+
+            // Case 2: mantissa < 1 (e.g., 0.0123)
+            if (value > 0 && value < 1) {
+                // Find index of first non-zero digit in the decimal part
+                const idx = decPart.search(/[1-9]/);
+
+                // Number of places to shift the decimal right
+                const shift = idx + 1;
+
+                // New mantissa: first non-zero digit, dot, rest of digits
+                const newMantissa = digits[0] + "." + digits.slice(1);
+
+                return {
+                    mantissa: sign + newMantissa,
+                    exp: exp - shift
+                };
+            }
+
+            // Case 3: Already correct (1 <= mantissa < 10)
+            return {
+                mantissa: sign + tempMantissa,
+                exp
+            };
+        }
+
+        // The main generation function
+        function generateAndDisplayScientificNotation(n) {
+
+            helpContainer = document.getElementById("helpContainer");
+            helpContainer.style.display = "none";
+
+            const helpBtn = document.getElementById("helpBtn");
+
+            let mantissaStr;
+            let exp = randomFromInterval(-15, 12); // Random exponent
+
+            // Case 1: Decimal to Scientific (conversion task)
+            if (n === 1) {
+                mantissaStr = randomMantissaString(); // Uses dot separator internally
+                let decimal = applyExponent(mantissaStr, exp);
+                let formattedDecimal = decimalToLatex(decimal);
+
+                document.getElementById("jedad").innerHTML = `
+                    <span style = font-size:0.5em;>Skrivañ an niver da heul e skrivad skiantel:</span>
+                    <div>\\( ${formattedDecimal} \\)</div>
+                `;
+                // The correct answer is the mantissa (dot separator) and exponent
+                result = `\\(${toScientific(mantissaStr, exp)}\\)`;
+                helpBtn.onclick = () => toggleScientificNotationHelp(decimal, 0, exp, "dec");
+
+            }
+            // Case 2: Correcting mantissa
+            else if (n === 2) {
+                let wrongMantissa = randomWeirdMantissa(); // Uses comma separator
+                let scientific = toScientific(wrongMantissa, exp);
+
+                // Normalize the 'wrong' mantissa (uses internal dot conversion)
+                const corrected = normalizeScientific(wrongMantissa, exp);
+
+                document.getElementById("jedad").innerHTML = `
+                    <span style = font-size:0.5em;>Skrivañ an niver da heul e skrivad skiantel:</span>
+                    <div>\\( ${scientific} \\)</div>
+                `;
+                // The correct answer is the normalized result
+                result = `\\(${toScientific(corrected.mantissa, corrected.exp)}\\)`;
+                helpBtn.onclick = () => toggleScientificNotationHelp(wrongMantissa, exp, corrected.exp, "sci");
+            } else {
+                return;
+            }
+
+            // Rerun MathJax to render the new LaTeX content
+            MathJax.typesetPromise().then(() => { });
+        }
+
+        function displayScientificNotationHelp(wrongM, wrongExp, correctExp, natur) {
+
+            const container = document.getElementById("helpContainer");
+            window.removeEventListener('resize', adjustCommaY);
+
+            container.innerHTML = ""; // clear old table
+
+            // Normalize value
+            let numStr = wrongM.toString() //.replace(",", ".");
+            const [intPart, decPart] = numStr.split(",");
+            const digits = [...intPart, ...(decPart || "")];
+            const intDigits = [...intPart];
+
+            // --- Table structure ---
+            const table = document.createElement("table");
+            const baseCellWidthPx = 32;
+            const totalTableWidthPx = (digits.length + 2) * baseCellWidthPx;
+
+            table.style.borderCollapse = "collapse";
+            table.style.tableLayout = "fixed";
+            table.style.width = totalTableWidthPx;
+            table.style.margin = "auto";
+            table.style.color = "white";
+            table.style.fontSize = "1.3em";
+            table.style.textAlign = "center";
+
+            // Data row
+            const dataRow = document.createElement("tr");
+            for (i = 0; i < digits.length + 3; i++) {
+                const td = document.createElement("td");
+                td.style.height = `${baseCellWidthPx}px`;
+                td.style.width = `${baseCellWidthPx}px`;
+                dataRow.appendChild(td);
+            };
+            table.appendChild(dataRow);
+
+            // Positionning digits
+            for (let j = 0; j < digits.length; j++) {
+                const span = document.createElement("span");
+                span.textContent = digits[j];
+                dataRow.children[j].appendChild(span);
+            }
+
+            // Positionning power
+            function powerDisplay() {
+                return new Promise(resolve => {
+                    const span = document.createElement("span");
+                    span.innerHTML = "&times";
+                    dataRow.children[digits.length].appendChild(span);
+                    const span1 = document.createElement("span");
+                    span1.textContent = "10";
+                    dataRow.children[digits.length + 1].appendChild(span1);
+                    span2 = document.createElement("span");
+                    span2.innerHTML = "<sup>" + wrongExp + "</sup>";
+                    dataRow.children[digits.length + 2].appendChild(span2);
+                    setTimeout(() => {
+                        resolve();
+                    }, 1000);
+                });
+            }
+
+            async function run() {
+                if (natur === "dec") {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await powerDisplay();
+                } else {
+                    await powerDisplay();
+                }
+            }
+
+
+            // Positioning the table
+            container.style.position = "relative";
+            container.style.width = "100%";
+            container.appendChild(table);
+
+            // Measure one cell to position the comma vertically
+            const sampleCell = dataRow.children[0];
+            const cellRect = sampleCell.getBoundingClientRect();
+            const parentRect = container.getBoundingClientRect();
+
+            // Calculate vertical center of the cell (relative to container)
+            const centerY = cellRect.top - parentRect.top + cellRect.height / 2;
+
+            // --- Animate comma movement ---
+            const comma = document.createElement("div");
+            comma.textContent = ",";
+            comma.style.position = "absolute";
+            comma.style.fontWeight = "bold";
+            comma.style.color = "#e85c94ff";
+            comma.style.transition = "transform 0.5s";
+            comma.style.left = "0";
+            comma.style.fontSize = "2em";
+
+            // Position vertically so comma sits nicely in line with digits
+            // tweak `+ offset` to raise/lower slightly if needed
+            const verticalOffset = -8; // adjust this pixel value if needed
+            comma.style.top = `${centerY + verticalOffset}px`;
+
+            // --- Position comma vertically based on cell height ---
+            function adjustCommaY() {
+                const sampleCell = dataRow.children[0];
+                if (!sampleCell) return;
+                const cellRect = sampleCell.getBoundingClientRect();
+                const parentRect = container.getBoundingClientRect();
+
+                //const centerY = cellRect.top - parentRect.top + cellRect.height / 2;
+                const verticalOffset = -18; // fine-tune visually
+                comma.style.top = `${centerY + verticalOffset}px`;
+            }
+
+            // Initial vertical alignment
+            adjustCommaY();
+
+            // Update comma position if the window resizes
+            window.addEventListener('resize', adjustCommaY);
+
+            // Find initial and final positions
+            const initialIndex = intDigits.length - 1;
+            let direction = wrongExp - correctExp;
+            const finalIndex = initialIndex + direction;
+
+            // Get the center position of a table cell
+            const getCellCenterX = (index) => {
+                const td = dataRow.children[index];
+                if (!td) {
+                    console.log(`Cell at index ${index} not found!`);
+                    return 0;
+                }
+                const rect = td.getBoundingClientRect();
+                const parentRect = container.getBoundingClientRect();
+                return rect.left - parentRect.left + rect.width / 1.5;
+            };
+
+            container.appendChild(comma);
+
+            // Set comma at starting position
+            const startX = getCellCenterX(initialIndex);
+            comma.style.left = `${startX}px`;
+            comma.offsetWidth;
+
+            async function animateComma(direction) {
+                let step = direction < 0 ? -32 : 32;
+                let currentX = 0;
+
+                // Animate to new position
+                for (let i = 0; i < Math.abs(direction); i++) {
+                    let add = i + 1;
+                    currentX += step;
+                    comma.style.transform = `translate(${currentX}px)`;
+                    let sign = direction < 0 ? `&plus;` : `&minus;`;
+                    span2.innerHTML =
+                        `<sup>
+                    ${wrongExp} 
+                    <span style="color: #e85c94ff">${sign}</span> 
+                    <span style="color: #e85c94ff">${add}</span>
+                </sup>`;
+                    dataRow.children[digits.length + 2].appendChild(span2);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+
+            async function start() {
+                await run();
+                await animateComma(direction);
+            }
+
+            start();
+
+        }
+
+        function toggleScientificNotationHelp(wrongM, wrongExp, correctExp, natur) {
+            const container = document.getElementById("helpContainer");
+            const nowHidden = container.style.display === "none" || !container.style.display;
+
+            if (nowHidden) {
+                container.style.display = "block";
+                displayScientificNotationHelp(wrongM, wrongExp, correctExp, natur);
+            } else {
+                container.style.display = "none";
+                container.innerHTML = ""; // Optional: clear when hidden
+            }
+        }
+
+        function isDecimal(num, den, digit) {
+            if (den === 0) return false;
+
+            return (num * (10 ** digit)) % den === 0;
+        }
+
+        function dibabJedad() {
+            const respontArea = document.getElementById("respontArea");
+            respontArea.textContent = "";
+            respontArea.style.display = "none";
+
+            document.getElementById("respontBtn").style.display = "inline-block";
+            document.getElementById("helpBtn").style.display = "inline-block";
+
+            const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                document.getElementById("jedad").textContent = "Dibab unan pe meur a eztaol";
+                document.getElementById("respontBtn").style.display = "none";
+                document.getElementById("helpBtn").style.display = "none";
+                return
+            }
+
+            const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+            switch (dibab) {
+                case "1":
+                    generateAndDisplayScientificNotation(1);
+                    break;
+                case "2":
+                    generateAndDisplayScientificNotation(2);
+                    break;
+            }
+        }
+
+        dibabJedad();
+    </script>
+
+</body>
+
+</html>

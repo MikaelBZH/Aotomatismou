@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+  <title>Talvoud un eztaol</title>
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/pajennoù.css">
+</head>
+
+<body>
+  <div id="menu-container"></div>
+
+  <div id="content" class="main">
+    <div class="container">
+      <form id="Dibaboù" class="flex flex-col md:flex-row justify-center items-center gap-4 text-white/90">
+        <label class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+          <input type="checkbox" name="live" value="1" checked>
+          <span class="custom-checkbox"></span>
+          Eztaol hep x&#0179;
+        </label>
+        <label class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+          <input type="checkbox" name="live" value="2" checked>
+          <span class="custom-checkbox"></span>
+          Eztaol gant x&#0179;
+        </label>
+        <!--<label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="3" checked>
+                    <span class="custom-checkbox"></span>
+                    Volumoù hep litr
+                </label>
+                <label
+                    class="flex items-center text-sm font-medium cursor-pointer transition-colors hover:text-indigo-400">
+                    <input type="checkbox" name="live" value="4" checked>
+                    <span class="custom-checkbox"></span>
+                    Volumoù gant litr
+                </label>-->
+      </form>
+      <!--<div class="number" id="jedad"></div>-->
+      <div class="number" id="jedadContainer" style="position: relative;">
+        <div id="jedad"></div>
+        <button id="helpBtn" class="help-button">?</button>
+      </div>
+      <div id="helpContainer" style="margin: 20px auto; text-align: left; display: none; white-space: nowrap;"></div>
+
+      <div>
+        <button class="button" onclick="diskouezRespont(result)" id="respontBtn">Respont</button>
+        <button class="button" onclick="dibabJedad()">Nevez</button>
+      </div>
+      <div class="result" id="respontArea"></div>
+    </div>
+  </div>
+
+  <script src="js/menu.js"></script>
+  <script src="js/math_functions.js"></script>
+  <script src="js/analysis_functions.js"></script>
+  <script>
+
+    // ------------------------- Calculate expression ---------------------------
+
+    function generateAndDisplayCalculateExpression(stumm, expMax) {
+
+      helpContainer = document.getElementById("helpContainer");
+      helpContainer.style.display = "none";
+
+      do {
+        expMax !== 3 ? x = randomFromInterval(-12, 12) : x = randomFromInterval(-3, 3);
+      } while (x === 0);
+
+      const helpBtn = document.getElementById("helpBtn");
+
+      if (x < 0) {
+        helpBtn.style.display = "inline-block";
+        helpBtn.onclick = () => toggleHelpCalculateExpression(x);
+      }
+
+      let format_x = x < 0 ? `(${x})` : `${x}`;
+
+      let kenef = [];
+      for (let i = 0; i < 4; i++) {
+        kenef[i] = randomFromInterval(-12, 12);
+      }
+
+      const parena = (n) =>
+        (n < 0)
+          ? `(${n})`
+          : `${n}`;
+
+      const parenb = (n) =>
+        (n < 0 || n === '-')
+          ? `(${n}x)`
+          : `${n}x`;
+
+      const signed = (n) => (n < 0 ? `- ${Math.abs(n)}` : `+ ${n}`);
+
+      const kenef1 = (n) =>
+        (n === 1 || n === -1)
+          ? (n === 1 ? `` : `-`)
+          : `${n}`;
+
+      let eztaol = "";
+      firstLine = "";
+      secondLine = "";
+      thirdLine = "";
+      fourthLine = 0;
+
+      switch (stumm) {
+        case 0:
+          for (let i = expMax; i >= 0; i--) {
+            const coef = kenef[i];
+            if (coef !== 0) {
+
+              // signe
+              if (eztaol !== "") {
+                const sign = coef > 0 ? " + " : " - ";
+                eztaol += sign;
+                firstLine += sign;
+                secondLine += sign;
+                //thirdLine += sign;
+              } else if (coef < 0) {
+                eztaol += "-";
+                firstLine += "-";
+                secondLine += "-";
+              }
+
+              const absCoef = Math.abs(coef);
+
+              // construction du terme
+              if (i === 0) {
+                // terme constant
+                eztaol += `${absCoef}`;
+                firstLine += `${absCoef}`;
+                secondLine += `${absCoef}`;
+                thirdLine += `${signed(coef)}`;
+                fourthLine += coef;
+              } else if (i === 1) {
+                // terme x^1
+                eztaol += absCoef === 1 ? "x" : `${absCoef}x`;
+                firstLine += absCoef === 1 ? `${format_x}` : `${absCoef} \\times ${format_x}`;
+                secondLine += absCoef === 1 ? `${format_x}` : `${absCoef} \\times ${format_x}`;
+                const multiplication = coef * x;
+                thirdLine += `${parena(signed(multiplication))}`;
+                fourthLine += multiplication;
+              } else {
+                // terme x^i
+                eztaol += absCoef === 1 ? `x^{${i}}` : `${absCoef}x^{${i}}`;
+                firstLine += absCoef === 1 ? `${format_x}^{${i}}` : `${absCoef} \\times ${format_x}^{${i}}`;
+                const power = x ** i;
+                secondLine += absCoef === 1 ? `${power}` : `${absCoef} \\times ${parena(power)}`;
+                const multiplication = coef * power;
+                thirdLine += (multiplication > 0 && i === expMax) ? `${multiplication}` : `${parena(signed(multiplication))}`;
+                fourthLine += multiplication;
+              }
+            }
+          }
+      }
+
+      result = `\\[
+            \\begin{aligned}
+            &${firstLine} \\\\
+            &${secondLine} \\\\
+            &${thirdLine} \\\\
+            &${fourthLine}
+            \\end{aligned}
+            \\]`;
+
+      let latex = `\\[
+                \\begin{aligned}
+                &Jediñ \\\\
+                &${eztaol} \\\\
+                &evit\\; x=${x}.
+                \\end{aligned}
+                \\]`;
+      document.getElementById('jedad').innerHTML = latex;
+
+      embannLatex();
+    }
+
+    function displayHelpCalculateExpression(x) {
+
+      const container = document.getElementById("helpContainer");
+      container.innerHTML = ""; // clear old container
+
+      container.innerHTML = `
+    <span>Dre ma 'z eo <span style="display: inline-block;">\\(x\\)</span> un niver negativel,</span><br>
+    <span>soñj lakaat e dalvoud etre kromelloù !</span><br>
+    <span><span style="display: inline-block;">\\( x=(${x}) \\)</span></span>
+`;
+
+      embannLatex();
+      //container.appendChild(text);
+      container.style.display = "block";
+    }
+
+    function toggleHelpCalculateExpression(x) {
+      const container = document.getElementById("helpContainer");
+      const nowHidden = container.style.display === "none" || !container.style.display;
+
+      if (nowHidden) {
+        container.style.display = "block";
+        displayHelpCalculateExpression(x);
+      } else {
+        container.style.display = "none";
+        container.innerHTML = ""; // Optional: clear when hidden
+      }
+    }
+
+    function dibabJedad() {
+      const respontArea = document.getElementById("respontArea");
+      respontArea.textContent = "";
+      respontArea.style.display = "none";
+
+      document.getElementById("respontBtn").style.display = "inline-block";
+      document.getElementById("helpBtn").style.display = "none";
+
+      const selected = Array.from(document.querySelectorAll('input[name="live"]:checked')).map(cb => cb.value);
+
+      if (selected.length === 0) {
+        document.getElementById("jedad").textContent = "Dibab unan pe meur a eztaol";
+        document.getElementById("respontBtn").style.display = "none";
+        document.getElementById("helpBtn").style.display = "none";
+        return
+      }
+
+      const dibab = selected[Math.floor(Math.random() * selected.length)];
+
+      switch (dibab) {
+        case "1":
+          generateAndDisplayCalculateExpression(0, 2);
+          break;
+        case "2":
+          generateAndDisplayCalculateExpression(0, 3);
+          break;
+      }
+    }
+
+    dibabJedad();
+  </script>
+
+</body>
+
+</html>
