@@ -1,0 +1,330 @@
+/* ========================= */
+/* 🌍 Global Utilities */
+/* ========================= */
+* {
+    box-sizing: border-box;
+    /* Smoother font rendering for better display on high-res screens */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+h1 {
+    color: white;
+    font-size: 2.2rem;
+    font-weight: 800;
+    /* Extra bold */
+    margin-bottom: 25px;
+}
+
+/* ========================= */
+/* 🎨 Structure principale */
+/* ========================= */
+.main {
+    /* Inherits background from body (#121212) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Center the container vertically */
+    min-height: 100vh;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.container {
+    /* Modern Card Style */
+    background-color: #1f2937;
+    /* Dark Slate background */
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 20px;
+    /* Highly rounded corners */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ========================= */
+/* 🔢 Calculation Blocks */
+/* ========================= */
+.number,
+.result {
+    font-weight: 700;
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px 60px 10px 25px;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    box-sizing: border-box;
+    transition: all 0.3s ease-in-out;
+    overflow-x: auto;
+}
+
+/* The problem display area */
+.number {
+    background: #4338ca;
+    /* Medium Indigo */
+    box-shadow: 0 4px 15px rgba(67, 56, 202, 0.5);
+    font-size: clamp(2.0em, 6vw, 4.0em);
+    line-height: 1;
+}
+
+/* The result display area (hidden initially) */
+.result {
+    background: #374151;
+    /* Darker gray for contrast */
+    color: #10b981;
+    position: relative;
+    font-size: clamp(1.5em, 5vw, 2.0em);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid #10b981;
+    text-align: left;
+}
+
+/* ========================= */
+/* ✅ Formulaire des options (Checkbox) */
+/* ========================= */
+form#Dibaboù {
+    color: #e5e7eb;
+    text-align: left;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+}
+
+form#Dibaboù label {
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 160px;
+    transition: color 0.2s;
+}
+
+form#Dibaboù label:hover {
+    color: #a5b4fc;
+    /* Light blue on hover */
+}
+
+/* Custom Checkbox Styling */
+input[type="checkbox"] {
+    /* Hiding the default checkbox */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: none;
+}
+
+.custom-checkbox {
+    position: relative;
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    margin-right: 10px;
+    border: 2px solid #6366f1;
+    /* Indigo border */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+input[type="checkbox"]:checked+.custom-checkbox {
+    background-color: #10b981;
+    /* Emerald green when checked */
+    border-color: #10b981;
+    transform: scale(1.05);
+}
+
+.custom-checkbox::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 5px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+input[type="checkbox"]:checked+.custom-checkbox::after {
+    opacity: 1;
+}
+
+/* ========================= */
+/* ❓ Bouton d'aide (Help Button) */
+/* ========================= */
+.help-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    border: none;
+    background: rgba(255, 255, 255, 0.3);
+    /* Slightly more visible background */
+    color: white;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.3em;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.help-button:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.5);
+    /* Highlight on hover */
+}
+
+
+/* ========================= */
+/* 🖱️ Buttons */
+/* ========================= */
+.button-container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.button {
+    flex: 1;
+    padding: 15px 25px;
+    font-size: 1.1em;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Respont Button (Green/Success) */
+#respontBtn {
+    background: #10b981;
+    /* Emerald Green */
+    color: #1f2937;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+#respontBtn:hover {
+    background: #059265;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5);
+}
+
+/* Nevez Button (Indigo/Primary) */
+.button:not(#respontBtn) {
+    background: #6366f1;
+    /* Indigo */
+    color: white;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+.button:not(#respontBtn):hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.5);
+}
+
+/* ========================= */
+/* 📱 Mobile Adaptation */
+/* ========================= */
+@media (max-width: 640px) {
+
+    .main {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 20px 15px;
+        gap: 15px;
+        border-radius: 15px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+
+    .number,
+    .result {
+        padding: 18px;
+        font-size: clamp(1.5em, 6vw, 2.5em);
+        min-height: 80px;
+    }
+
+    form#Dibaboù {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    form#Dibaboù label {
+        font-size: 1em;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .button-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .button {
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+}
+
+/* ========================================= */
+/* 🔢 MathJax – gestion du débordement      */
+/* ========================================= */
+mjx-container {
+    max-width: 100%;
+    display: block;
+    text-align: center;
+    margin: auto;
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+mjx-container[jax="SVG"] svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Réduction douce de MathJax sur mobile */
+@media (max-width: 600px) {
+    mjx-container {
+        font-size: 0.9em;
+    }
+}
