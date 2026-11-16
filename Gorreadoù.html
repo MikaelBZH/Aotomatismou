@@ -163,12 +163,12 @@
 
             let points;
 
-            drawSeg(cA, cB, "#9ca3af");
-            drawSeg(cA, cC, "#9ca3af");
-            drawSeg(cB, cC, "#9ca3af");
-            drawSeg(cC, cD, "#9ca3af");
+            drawSeg(cA, cB, "#637587");
+            drawSeg(cA, cC, "#637587");
+            drawSeg(cB, cC, "#637587");
+            drawSeg(cC, cD, "#637587");
 
-            if (fig.lengths.AD > fig.lengths.AB) drawSeg(cB, cD, "#9ca3af", true);
+            if (fig.lengths.AD > fig.lengths.AB) drawSeg(cB, cD, "#637587", true);
 
             if (cA.x === cD.x || cB.x === cD.x) {
                 points = [
@@ -183,7 +183,7 @@
 
             points.forEach(item => {
                 const label = fig.labels[item.n];
-                ctx.fillStyle = "white";
+                ctx.fillStyle = "#18344a";
                 ctx.font = "bold 19px Arial";
                 const offsetX = item.p.x > canvas.getBoundingClientRect().width / 2 ? 10 : -25;
                 const offsetY = item.p.y > canvas.getBoundingClientRect().height / 2 ? 20 : -10;
