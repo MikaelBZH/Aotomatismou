@@ -151,15 +151,15 @@
             if (fig.type === "triangle") {
                 const farAB = Math.abs(fig.B.x) > Math.abs(fig.D.x) ? cB : cD;
                 const farAC = Math.hypot(fig.C.x, fig.C.y) > Math.hypot(fig.E.x, fig.E.y) ? cC : cE;
-                drawSeg(cA, farAB, "#9ca3af");
-                drawSeg(cA, farAC, "#9ca3af");
-                drawSeg(cB, cC, "#ef4444");
-                drawSeg(cD, cE, "#10b981");
+                drawSeg(cA, farAB, "#637587");
+                drawSeg(cA, farAC, "#637587");
+                drawSeg(cB, cC, "#df6330");
+                drawSeg(cD, cE, "#287b73");
             } else {
-                drawSeg(cB, cD, "#9ca3af");
-                drawSeg(cC, cE, "#9ca3af");
-                drawSeg(cB, cC, "#ef4444");
-                drawSeg(cD, cE, "#10b981");
+                drawSeg(cB, cD, "#637587");
+                drawSeg(cC, cE, "#637587");
+                drawSeg(cB, cC, "#df6330");
+                drawSeg(cD, cE, "#287b73");
             }
 
             const points = [
@@ -169,7 +169,7 @@
 
             points.forEach(item => {
                 const label = fig.labels[item.n];
-                ctx.fillStyle = "white";
+                ctx.fillStyle = "#18344a";
                 ctx.font = "bold 19px Arial";
                 const offsetX = item.p.x > canvas.getBoundingClientRect().width / 2 ? 10 : -25;
                 const offsetY = item.p.y > canvas.getBoundingClientRect().height / 2 ? 20 : -10;
