@@ -77,6 +77,22 @@ function kostezioùTrigo(triangle, poentSkouerIndex, kornIndex) {
     return [k_hip, k_sko, k_enep];
 }
 
+function trichornSkouer() {
+    let l1 = lizherenn[randomFromInterval(0, lizherenn.length - 1)];
+    let l2, l3;
+    while (l2 === l1 || l2 === undefined) {
+        l2 = lizherenn[randomFromInterval(0, lizherenn.length - 1)];
+    }
+    while (l3 === l1 || l3 === l2 || l3 === undefined) {
+        l3 = lizherenn[randomFromInterval(0, lizherenn.length - 1)];
+    }
+
+    triangle = [l1, l2, l3];
+    triangle_skrid = l1 + l2 + l3;
+    skouer = randomFromInterval(0, 2);
+    poentSkouer = triangle[skouer];
+}
+
 function Trigo() {
 
     const respontArea = document.getElementById("respontArea");
