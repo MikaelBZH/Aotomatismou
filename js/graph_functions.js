@@ -55,19 +55,19 @@ function drawGrid() {
     const yMax = Math.ceil(h / (2 * unit));
     for (let x = -xMax; x <= xMax; x++) {
         let posX = O.x + x * unit;
-        line(posX, 0, posX, h, "#e0e0e0", 0.5);
+        line(posX, 0, posX, h, "#e4dfd3", 0.5);
     }
     for (let y = -yMax; y <= yMax; y++) {
         let posY = O.y - y * unit;
-        line(0, posY, w, posY, "#e0e0e0", 0.5);
+        line(0, posY, w, posY, "#e4dfd3", 0.5);
     }
 }
 
 function drawAxes() {
-    line(0, O.y, w, O.y, "#cce3f5ff", 2);
-    line(O.x, 0, O.x, h, "#cce3f5ff", 2);
+    line(0, O.y, w, O.y, "#18344a", 2);
+    line(O.x, 0, O.x, h, "#18344a", 2);
     ctx.font = "14px Arial";
-    ctx.fillStyle = "#cce3f5ff";
+    ctx.fillStyle = "#18344a";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const xMax = Math.floor(w / (2 * unit));
@@ -76,13 +76,13 @@ function drawAxes() {
     for (let i = -xMax; i <= xMax; i++) {
         if (i === 0) continue;
         let posX = O.x + i * unit;
-        line(posX, O.y - 5, posX, O.y + 5, "#cce3f5ff", 1);
+        line(posX, O.y - 5, posX, O.y + 5, "#18344a", 1);
         ctx.fillText(i, posX, O.y + 20);
     }
     for (let i = -yMax; i <= yMax; i++) {
         if (i === 0) continue;
         let posY = O.y - i * unit;
-        line(O.x - 5, posY, O.x + 5, posY, "#cce3f5ff", 1);
+        line(O.x - 5, posY, O.x + 5, posY, "#18344a", 1);
         ctx.fillText(i, O.x + 15, posY);
     }
     ctx.fillText("O", O.x - 10, O.y + 10);
