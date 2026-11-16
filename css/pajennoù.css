@@ -246,6 +246,7 @@ canvas {
 
 #helpContainer {
     max-width: 100%;
+    overflow-x: auto;
     padding: 14px 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -254,6 +255,10 @@ canvas {
     line-height: 1.6;
     overflow-wrap: anywhere;
     white-space: normal !important;
+}
+
+#helpContainer table {
+    color: var(--ink);
 }
 
 mjx-container {
